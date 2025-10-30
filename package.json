@@ -7,7 +7,7 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
-    "start": "node .output/server/index.mjs",
+    "start": "sh -c \"mkdir -p /app/data /app/uploads && chmod 755 /app/data /app/uploads && (npx prisma migrate deploy 2>/dev/null || npx prisma db push) && node .output/server/index.mjs\"",
     "start:prod": "npx prisma migrate deploy || npx prisma db push && node .output/server/index.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
