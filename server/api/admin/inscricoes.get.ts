@@ -1,10 +1,13 @@
 import { prisma } from '~/server/utils/database'
+import { getSession, isSessionExpired, SESSION_COOKIE_NAME } from '~/server/utils/sessionStore'
 
 export default defineEventHandler(async (event) => {
   try {
     // Verificar autenticação
-    const session = getCookie(event, 'admin-session')
-    if (!session || session !== 'true') {
+    const sessionId = getCookie(event, SESSION_COOKIE_NAME)
+    const session = getSession(sessionId)
+    
+    if (!session || isSessionExpired(session)) {
       throw createError({
         statusCode: 401,
         statusMessage: 'Não autorizado'
