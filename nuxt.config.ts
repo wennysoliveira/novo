@@ -4,6 +4,10 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss'],
   css: ['~/assets/css/main.css'],
   compatibilityDate: '2025-10-28',
+  nitro: {
+    // Configuração para servir arquivos estáticos em produção
+    compressPublicAssets: true
+  },
   runtimeConfig: {
     // Private keys (only available on server-side)
     jwtSecret: process.env.JWT_SECRET || 'sua-chave-secreta-padrao',

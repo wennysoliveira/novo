@@ -27,7 +27,7 @@ RUN npx prisma generate
 # Build the application
 RUN npm run build
 
-# Remove dev dependencies after build
+# Remove dev dependencies after build (mantém o .output)
 RUN npm prune --production
 
 # Declarar volumes para persistência (o painel pode mapear ou manter entre restarts)
