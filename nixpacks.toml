@@ -1,3 +1,19 @@
-# Configuração mínima - Nixpacks detectará automaticamente Node.js e Nuxt
+# Forçar uso apenas do provider Node.js (sem Nix)
+[providers]
+only = ["node"]
+
+# Configuração de build
+[phases.install]
+cmds = [
+  'npm install --include=dev',
+  'npx prisma generate',
+]
+
+[phases.build]
+cmds = [
+  'npm run build',
+  'npm prune --production',
+]
+
 # O comando start está no package.json
 

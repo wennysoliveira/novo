@@ -1,11 +1,5 @@
-node_modules
-.nuxt
-.git
-.gitignore
-README.md
+.nixpacks/
+.output/
+node_modules/
+.git/
 .env*
-*.log
-.DS_Store
-Thumbs.db
-.nixpacks
-nixpacks.toml
