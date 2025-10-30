@@ -1,12 +1,16 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  devtools: { enabled: process.env.NODE_ENV !== 'production' },
   modules: ['@nuxtjs/tailwindcss'],
   css: ['~/assets/css/main.css'],
   compatibilityDate: '2025-10-28',
   nitro: {
-    // Configuração para servir arquivos estáticos em produção
+    // Compressão de assets públicos para melhor performance
     compressPublicAssets: true
+  },
+  experimental: {
+    // Desabilitar watchers em produção para melhor performance
+    watcher: process.env.NODE_ENV === 'production' ? false : undefined
   },
   runtimeConfig: {
     // Private keys (only available on server-side)

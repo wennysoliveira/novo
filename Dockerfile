@@ -27,8 +27,14 @@ RUN npx prisma generate
 # Build the application
 RUN npm run build
 
+# Verificar se os arquivos públicos foram gerados
+RUN test -d .output/public/_nuxt && echo "✓ Arquivos _nuxt gerados" || echo "⚠ Arquivos _nuxt não encontrados"
+
 # Remove dev dependencies after build (mantém o .output)
 RUN npm prune --production
+
+# Garantir que o diretório .output existe e tem permissões corretas
+RUN chmod -R 755 .output 2>/dev/null || true
 
 # Declarar volumes para persistência (o painel pode mapear ou manter entre restarts)
 VOLUME ["/app/data", "/app/uploads"]
