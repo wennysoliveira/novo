@@ -21,7 +21,7 @@ RUN npm install --include=dev
 # Copy source code
 COPY . .
 
-# Generate Prisma client
+# Generate Prisma client (será regenerado no startup com a DATABASE_URL correta)
 RUN npx prisma generate
 
 # Build the application

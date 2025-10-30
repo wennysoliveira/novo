@@ -45,6 +45,10 @@ fi
 
 echo "Diretório criado com sucesso: $DB_DIR"
 
+# Regenerar Prisma Client com o DATABASE_URL correto
+echo "Regenerando Prisma Client com DATABASE_URL=$DATABASE_URL..."
+npx prisma generate
+
 # Executar migrações
 echo "Executando migrações do banco de dados..."
 if npx prisma migrate deploy 2>&1; then
