@@ -11,16 +11,22 @@ mkdir -p /app/data /app/uploads
 chmod 755 /app/data /app/uploads
 
 # Extrair caminho do banco de dados da variável DATABASE_URL
-# Formato esperado: file:/app/data/prod.db ou file:///app/data/prod.db
+# Formato esperado: file:/app/data/prod.db ou file:///app/data/prod.db ou file:./app/data/prod.db
 DB_PATH=$(echo "$DATABASE_URL" | sed 's|^file://*||' | sed 's|^file:||')
 
 echo "DATABASE_URL: $DATABASE_URL"
 echo "DB_PATH extraído: $DB_PATH"
 
+# Normalizar caminho: remover ./ no início se presente
+DB_PATH=$(echo "$DB_PATH" | sed 's|^\./||')
+
 # Se não começou com /, considerar relativo ao /app
 if [ "${DB_PATH#/}" = "$DB_PATH" ]; then
   DB_PATH="/app/$DB_PATH"
 fi
+
+# Normalizar caminho (remover duplicatas como /app/./app/)
+DB_PATH=$(echo "$DB_PATH" | sed 's|/\./|/|g' | sed 's|/\.\.|/..|g')
 
 # Extrair diretório do arquivo
 DB_DIR=$(dirname "$DB_PATH")
