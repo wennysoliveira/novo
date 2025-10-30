@@ -1,0 +1,23 @@
+[phases.setup]
+nixPkgs = ['nodejs-20_x']
+
+[phases.install]
+cmds = [
+  'npm install --include=dev',
+  'npx prisma generate',
+]
+
+[phases.build]
+cmds = [
+  'npm run build',
+  'npm prune --production',
+]
+
+[start]
+cmd = 'sh -c "mkdir -p /app/data /app/uploads && chmod 755 /app/data /app/uploads && (npx prisma migrate deploy 2>/dev/null || npx prisma db push) && node .output/server/index.mjs"'
+
+[variables]
+NODE_ENV = 'production'
+DATABASE_URL = 'file:/app/data/prod.db'
+UPLOAD_DIR = '/app/uploads'
+
