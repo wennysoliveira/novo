@@ -12,9 +12,6 @@ ENV NODE_ENV=production
 ENV DATABASE_URL="file:/app/data/prod.db"
 ENV UPLOAD_DIR="/app/uploads"
 
-# Garantir diretórios de dados e uploads
-RUN mkdir -p /app/data /app/uploads
-
 # Copy package files
 COPY package*.json ./
 
@@ -39,5 +36,9 @@ VOLUME ["/app/data", "/app/uploads"]
 # Expose port
 EXPOSE 3000
 
-# Start the application: aplica migrations (se existirem) ou faz db push
-CMD ["sh", "-c", "npx prisma migrate deploy || npx prisma db push && node .output/server/index.mjs"]
+# Copiar script de inicialização
+COPY scripts/init-db.sh /app/scripts/init-db.sh
+RUN chmod +x /app/scripts/init-db.sh
+
+# Start the application: executa script de inicialização e inicia o servidor
+CMD ["sh", "-c", "/app/scripts/init-db.sh && node .output/server/index.mjs"]
