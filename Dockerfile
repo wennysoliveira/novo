@@ -2,7 +2,8 @@
 FROM node:20-alpine
 
 # Dependências úteis para binários do Prisma (algumas imagens precisam destas)
-RUN apk add --no-cache libc6-compat openssl
+# sqlite3 para verificação e aplicação manual de migrações se necessário
+RUN apk add --no-cache libc6-compat openssl sqlite
 
 # Set working directory
 WORKDIR /app
@@ -30,8 +31,13 @@ RUN npx prisma generate
 # Build the application
 RUN npm run build
 
-# Remove dev dependencies after build
+# Copy startup script
+COPY scripts/start-prod.sh /app/scripts/start-prod.sh
+RUN chmod +x /app/scripts/start-prod.sh
+
+# Remove dev dependencies after build (mas manter prisma para migrations)
 RUN npm prune --production
+RUN npm install prisma --save
 
 # Declarar volumes para persistência (o painel pode mapear ou manter entre restarts)
 VOLUME ["/app/data", "/app/uploads"]
@@ -39,5 +45,5 @@ VOLUME ["/app/data", "/app/uploads"]
 # Expose port
 EXPOSE 3000
 
-# Start the application: cria diretórios, aplica migrations e inicia servidor
-CMD ["sh", "-c", "mkdir -p /app/data /app/uploads && chmod 755 /app/data /app/uploads && (npx prisma migrate deploy 2>/dev/null || npx prisma db push) && node .output/server/index.mjs"]
+# Start the application usando o script de inicialização
+CMD ["/app/scripts/start-prod.sh"]

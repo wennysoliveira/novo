@@ -26,8 +26,13 @@ export async function createSession(sessionId: string, username: string): Promis
         lastActive: new Date()
       }
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao criar sessão no banco:', error)
+    // Se a tabela não existir, tentar criar
+    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+      console.log('Tabela admin_sessions não existe. Execute as migrações do Prisma.')
+      throw new Error('Tabela de sessões não encontrada. Execute as migrações do banco de dados.')
+    }
     throw error
   }
 }
@@ -46,8 +51,13 @@ export async function getSession(sessionId: string | undefined | null): Promise<
       username: record.username,
       lastActive: record.lastActive.getTime()
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao buscar sessão:', error)
+    // Se a tabela não existir, retornar null silenciosamente
+    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+      console.log('AVISO: Tabela admin_sessions não existe. Execute as migrações do Prisma.')
+      return null
+    }
     return null
   }
 }
@@ -103,7 +113,12 @@ export async function cleanupExpiredSessions(): Promise<void> {
 export async function getSessionStoreSize(): Promise<number> {
   try {
     return await prisma.adminSession.count()
-  } catch (error) {
+  } catch (error: any) {
+    // Se a tabela não existir, retornar 0
+    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+      console.log('AVISO: Tabela admin_sessions não existe. Execute as migrações do Prisma.')
+      return 0
+    }
     console.error('Erro ao contar sessões:', error)
     return 0
   }
