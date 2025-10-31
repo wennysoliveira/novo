@@ -50,7 +50,7 @@
             <FormInput
               id="email"
               label="E-mail"
-              type="text"
+              type="email"
               v-model="form.email"
             />
             
