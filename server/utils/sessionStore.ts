@@ -3,7 +3,8 @@ type SessionRecord = {
   lastActive: number
 }
 
-const FIVE_MINUTES_MS = 5 * 60 * 1000
+// Aumentar tempo de sessão para 30 minutos em produção
+const FIVE_MINUTES_MS = 30 * 60 * 1000 // 30 minutos
 
 const sessions = new Map<string, SessionRecord>()
 
@@ -34,7 +35,12 @@ export function isSessionExpired(record: SessionRecord): boolean {
 }
 
 export const SESSION_COOKIE_NAME = 'admin_session'
-export const SESSION_MAX_AGE_SECONDS = 300
+export const SESSION_MAX_AGE_SECONDS = 30 * 60 // 30 minutos
 export const SESSION_MAX_AGE_MS = FIVE_MINUTES_MS
+
+// Debug: verificar tamanho da store
+export function getSessionStoreSize(): number {
+  return sessions.size
+}
 
 

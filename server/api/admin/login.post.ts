@@ -33,10 +33,11 @@ export default defineEventHandler(async (event) => {
       sameSite: 'lax',
       path: '/',
       maxAge: SESSION_MAX_AGE_SECONDS,
-      secure: false // Desabilitado temporariamente para debug
+      secure: false, // Desabilitado temporariamente para debug
+      domain: undefined // Deixar undefined para usar o domínio atual
     })
 
-    console.log('Login: cookie configurado:', SESSION_COOKIE_NAME)
+    console.log('Login: cookie configurado:', SESSION_COOKIE_NAME, 'com valor:', sessionId.substring(0, 8) + '...')
 
     return { success: true, sessionId: sessionId.substring(0, 8) + '...' }
   } catch (error: any) {
