@@ -298,11 +298,16 @@ const loadInscricoes = async () => {
       credentials: 'include'
     })
 
+    console.log('Resposta da API:', response)
+    
     if (response?.success && Array.isArray(response.data)) {
+      console.log('Inscrições recebidas:', response.data.length)
       allInscricoes.value = response.data
       pagination.value.total = response.pagination?.total ?? response.data.length
       pagination.value.totalPages = Math.ceil(pagination.value.total / pagination.value.limit)
+      console.log('Total de inscrições:', pagination.value.total)
     } else {
+      console.log('Resposta inválida ou sem dados:', response)
       allInscricoes.value = []
       pagination.value.total = 0
       pagination.value.totalPages = 0

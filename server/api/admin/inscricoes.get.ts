@@ -47,7 +47,11 @@ export default defineEventHandler(async (event) => {
     const page = parseInt(query.page as string) || 1
     const limit = parseInt(query.limit as string) || 10
     const search = query.search as string || ''
-    const skip = (page - 1) * limit
+    
+    // Se limit for muito alto (>= 1000), buscar todos os registros (para filtros no cliente)
+    const shouldFetchAll = limit >= 1000
+    const skip = shouldFetchAll ? 0 : (page - 1) * limit
+    const take = shouldFetchAll ? undefined : limit
 
     // Construir filtros de busca
     const where: any = {}
@@ -60,12 +64,14 @@ export default defineEventHandler(async (event) => {
       ]
     }
 
+    console.log('Buscando inscrições - where:', JSON.stringify(where), 'take:', take, 'skip:', skip)
+
     // Buscar inscrições com paginação
     const [candidates, total] = await Promise.all([
       prisma.candidate.findMany({
         where,
-        skip,
-        take: limit,
+        ...(skip > 0 && { skip }),
+        ...(take && { take }),
         orderBy: { createdAt: 'desc' },
         include: {
           documents: {
@@ -115,14 +121,16 @@ export default defineEventHandler(async (event) => {
       }
     })
 
+    console.log('Inscrições encontradas:', candidates.length, 'Total no banco:', total)
+
     return {
       success: true,
       data: candidatesWithScore,
       pagination: {
         page,
-        limit,
+        limit: shouldFetchAll ? total : limit,
         total,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / (shouldFetchAll ? total : limit))
       }
     }
 
