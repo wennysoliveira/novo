@@ -1,12 +1,12 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
-    <header class="bg-white shadow-sm">
+    <header class="bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm border-b border-blue-100">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-6">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Detalhes da Inscrição</h1>
-            <p class="text-sm text-gray-600">{{ candidato?.nomeCompleto || 'Carregando...' }}</p>
+            <p class="mt-2 text-sm text-gray-700">{{ candidato?.nomeCompleto || 'Carregando...' }}</p>
           </div>
           <div class="flex items-center space-x-4">
             <NuxtLink
@@ -35,6 +35,16 @@
       </div>
 
       <div v-else class="space-y-8">
+        <!-- Protocolo -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium text-gray-500">Número do Protocolo</label>
+              <p class="mt-1 text-lg font-mono font-bold text-blue-600">{{ getProtocolo(candidato.id) }}</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Informações Pessoais -->
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-6">Informações Pessoais e Profissionais</h2>
@@ -246,6 +256,10 @@ const formatDate = (dateString: string) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+const getProtocolo = (candidateId: string) => {
+  return `SEG-${candidateId.slice(-8).toUpperCase()}`
 }
 
 // Download de documento

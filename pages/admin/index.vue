@@ -1,12 +1,12 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
-    <header class="bg-white shadow-sm">
+    <header class="bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm border-b border-blue-100">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-6">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Dashboard Administrativo</h1>
-            <p class="text-sm text-gray-600">Seletivo de Gestores Escolares 2025</p>
+            <p class="mt-2 text-sm text-gray-700">Seletivo de Gestores Escolares 2025</p>
           </div>
         <div class="flex items-center space-x-4">
           <button @click="handleLogout" class="px-3 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700">Sair</button>
@@ -155,6 +155,7 @@
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidato</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPF</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Formação</th>
@@ -170,6 +171,11 @@
                 :key="inscricao.id"
                 class="hover:bg-gray-50"
               >
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-mono font-semibold text-blue-600">
+                    {{ getProtocolo(inscricao.id) }}
+                  </div>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div>
                     <div class="text-sm font-medium text-gray-900">{{ inscricao.nomeCompleto }}</div>
@@ -459,6 +465,10 @@ const formatCPF = (cpf: string) => {
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pt-BR')
+}
+
+const getProtocolo = (candidateId: string) => {
+  return `SEG-${candidateId.slice(-8).toUpperCase()}`
 }
 
 // Função para limpar todos os cookies
