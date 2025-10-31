@@ -20,28 +20,85 @@
       <div class="bg-white rounded-lg shadow-md p-8">
         <!-- Ícone de Sucesso -->
         <div class="text-center mb-8">
-          <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+          <div v-if="loading" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-4">
+            <svg class="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+          <div v-else class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
             <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">Inscrição Confirmada!</h2>
-          <p class="text-gray-600">Sua inscrição foi recebida e está sendo processada.</p>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">
+            {{ loading ? 'Carregando...' : error ? 'Erro' : 'Inscrição Confirmada!' }}
+          </h2>
+          <p class="text-gray-600">
+            {{ loading ? 'Carregando dados da inscrição...' : error || 'Sua inscrição foi recebida e está sendo processada.' }}
+          </p>
         </div>
 
         <!-- Informações da Inscrição -->
         <div class="bg-gray-50 rounded-lg p-6 mb-8">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">Informações da Inscrição</h3>
           
-          <div class="grid md:grid-cols-2 gap-4">
+          <div class="grid md:grid-cols-2 gap-6">
             <div>
               <p class="text-sm font-medium text-gray-500">Número do Protocolo</p>
-              <p class="text-lg font-mono text-gray-900">{{ protocolo }}</p>
+              <p class="text-lg font-mono font-bold text-gray-900">{{ inscricaoData?.protocolo || protocolo || 'Carregando...' }}</p>
             </div>
             
             <div>
-              <p class="text-sm font-medium text-gray-500">Data da Inscrição</p>
-              <p class="text-lg text-gray-900">{{ formatDate(new Date()) }}</p>
+              <p class="text-sm font-medium text-gray-500">Data e Hora da Inscrição</p>
+              <p class="text-lg text-gray-900">{{ inscricaoData ? formatDateTime(inscricaoData.createdAt) : 'Carregando...' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dados do Candidato -->
+        <div v-if="inscricaoData" class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Dados da Inscrição</h3>
+          
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <p class="text-sm font-medium text-gray-500">Nome Completo</p>
+              <p class="mt-1 text-base text-gray-900">{{ inscricaoData.nomeCompleto }}</p>
+            </div>
+            
+            <div>
+              <p class="text-sm font-medium text-gray-500">CPF</p>
+              <p class="mt-1 text-base text-gray-900">{{ formatCPF(inscricaoData.cpf) }}</p>
+            </div>
+            
+            <div>
+              <p class="text-sm font-medium text-gray-500">E-mail</p>
+              <p class="mt-1 text-base text-gray-900">{{ inscricaoData.email }}</p>
+            </div>
+            
+            <div>
+              <p class="text-sm font-medium text-gray-500">Telefone</p>
+              <p class="mt-1 text-base text-gray-900">{{ inscricaoData.telefone }}</p>
+            </div>
+            
+            <div>
+              <p class="text-sm font-medium text-gray-500">Unidade de Ensino</p>
+              <p class="mt-1 text-base text-gray-900">{{ inscricaoData.unidadeEnsino }}</p>
+            </div>
+            
+            <div>
+              <p class="text-sm font-medium text-gray-500">Função Atual</p>
+              <p class="mt-1 text-base text-gray-900">{{ inscricaoData.funcaoAtual }}</p>
+            </div>
+            
+            <div>
+              <p class="text-sm font-medium text-gray-500">Formação Acadêmica</p>
+              <p class="mt-1 text-base text-gray-900">{{ inscricaoData.formacaoAcademica }}</p>
+            </div>
+            
+            <div>
+              <p class="text-sm font-medium text-gray-500">Tempo de Experiência em Gestão</p>
+              <p class="mt-1 text-base text-gray-900">{{ inscricaoData.tempoExperienciaGestao }} {{ inscricaoData.tempoExperienciaGestao === 1 ? 'ano' : 'anos' }}</p>
             </div>
           </div>
         </div>
@@ -201,18 +258,66 @@ definePageMeta({
   title: 'Inscrição Confirmada'
 })
 
-// Obter protocolo da URL
+// Obter protocolo e candidateId da URL
 const route = useRoute()
 const protocolo = route.query.protocolo as string
+const candidateId = route.query.candidateId as string
 
-// Função para formatar data
-const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('pt-BR', {
+// Estado para dados da inscrição
+const inscricaoData = ref<any>(null)
+const loading = ref(true)
+const error = ref<string | null>(null)
+
+// Buscar dados da inscrição
+onMounted(async () => {
+  try {
+    loading.value = true
+    
+    const queryParams: any = {}
+    if (protocolo) queryParams.protocolo = protocolo
+    if (candidateId) queryParams.candidateId = candidateId
+    
+    const response: any = await $fetch('/api/inscricao/confirmacao', {
+      method: 'GET',
+      query: queryParams
+    })
+    
+    if (response?.success && response.data) {
+      inscricaoData.value = response.data
+      console.log('Dados da inscrição carregados:', response.data)
+    } else {
+      error.value = 'Não foi possível carregar os dados da inscrição'
+    }
+  } catch (err: any) {
+    console.error('Erro ao buscar dados da inscrição:', err)
+    error.value = err.message || 'Erro ao carregar dados da inscrição'
+  } finally {
+    loading.value = false
+  }
+})
+
+// Função para formatar data e hora
+const formatDateTime = (date: string | Date): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  return dateObj.toLocaleString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    second: '2-digit'
   })
+}
+
+// Função para formatar CPF
+const formatCPF = (cpf: string): string => {
+  if (!cpf) return ''
+  // Remove caracteres não numéricos
+  const cleaned = cpf.replace(/\D/g, '')
+  // Formata como XXX.XXX.XXX-XX
+  if (cleaned.length === 11) {
+    return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  }
+  return cpf
 }
 </script>

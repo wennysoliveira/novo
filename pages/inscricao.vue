@@ -416,8 +416,8 @@ const submitForm = async () => {
     })
     
     if (response.success) {
-      // Redirecionar para página de confirmação
-      await navigateTo(`/inscricao/confirmacao?protocolo=${response.protocolo}`)
+      // Redirecionar para página de confirmação com protocolo e candidateId
+      await navigateTo(`/inscricao/confirmacao?protocolo=${response.protocolo}&candidateId=${response.candidateId}`)
     }
     
   } catch (error: any) {
