@@ -89,6 +89,34 @@ if command -v sqlite3 >/dev/null 2>&1; then
   else
     echo "✓ Tabela admin_sessions encontrada - sessões serão persistentes!"
   fi
+  
+  # Verificar e corrigir status NULL na tabela titles
+  echo "Verificando campos de validação na tabela titles..."
+  HAS_STATUS_COLUMN=$(sqlite3 "$DB_PATH" "PRAGMA table_info(titles);" 2>/dev/null | grep -q "status" && echo "yes" || echo "no")
+  
+  if [ "$HAS_STATUS_COLUMN" != "yes" ]; then
+    echo "⚠ Campos de validação não encontrados na tabela titles!"
+    echo "Aplicando migração manualmente..."
+    if [ -f "prisma/migrations/20250115000000_add_title_validation_fields/migration.sql" ]; then
+      if sqlite3 "$DB_PATH" < prisma/migrations/20250115000000_add_title_validation_fields/migration.sql 2>/dev/null; then
+        echo "✓ Campos de validação adicionados com sucesso!"
+        npx prisma generate || echo "⚠ AVISO: Falha ao regenerar Prisma Client"
+      else
+        echo "✗ ERRO: Não foi possível aplicar migração de campos de validação!"
+      fi
+    fi
+  else
+    # Garantir que todos os registros com status NULL sejam atualizados para 'pending'
+    NULL_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM titles WHERE status IS NULL;" 2>/dev/null || echo "0")
+    if [ "$NULL_COUNT" != "0" ] && [ "$NULL_COUNT" != "" ]; then
+      echo "⚠ Encontrados $NULL_COUNT registros com status NULL. Atualizando para 'pending'..."
+      sqlite3 "$DB_PATH" "UPDATE titles SET status = 'pending' WHERE status IS NULL;" 2>/dev/null && \
+        echo "✓ Registros atualizados com sucesso!" || \
+        echo "⚠ AVISO: Não foi possível atualizar todos os registros"
+    else
+      echo "✓ Todos os registros de titles têm status definido"
+    fi
+  fi
 else
   echo "⚠ sqlite3 não disponível. Assumindo que migrações foram aplicadas corretamente."
 fi

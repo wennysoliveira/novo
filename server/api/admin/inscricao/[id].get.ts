@@ -97,8 +97,13 @@ export default defineEventHandler(async (event) => {
     }, 0)
     
     // Fallback: se não houver títulos de formação mas não forem rejeitados, usar campo formacaoAcademica
+    // IMPORTANTE: Para inscrições antigas que não têm registros na tabela titles
     if (formacaoPontos === 0) {
-      if (todosTitulosFormacao.length === 0 || !todosTitulosFormacao.some(t => t.status === 'rejected')) {
+      const algumRejeitado = todosTitulosFormacao.some(t => t.status === 'rejected')
+      
+      // Se não há títulos OU se há títulos mas nenhum foi rejeitado, usar fallback
+      if (todosTitulosFormacao.length === 0 || !algumRejeitado) {
+        console.log(`[${candidateId}] DEBUG - Usando fallback para formacaoAcademica:`, candidate.formacaoAcademica)
         if (candidate.formacaoAcademica === 'Doutorado') {
           formacaoPontos = 15
         } else if (candidate.formacaoAcademica === 'Mestrado') {
@@ -108,6 +113,8 @@ export default defineEventHandler(async (event) => {
         }
       }
     }
+    
+    console.log(`[${candidateId}] DEBUG - Pontos de formação calculados:`, formacaoPontos)
     
     scoreDetails.formacao = formacaoPontos
     
@@ -136,6 +143,7 @@ export default defineEventHandler(async (event) => {
     
     scoreDetails.tempoMagisterio = Math.min(tempoMagisterio, 20)
     score += scoreDetails.tempoMagisterio
+    console.log(`[${candidateId}] DEBUG - Pontos de tempo de magistério:`, scoreDetails.tempoMagisterio)
 
     // Pontuação por experiência em gestão (3 pontos por ano, máximo 10 anos = 30 pontos)
     // Considerar apenas títulos aprovados ou pendentes
@@ -169,6 +177,7 @@ export default defineEventHandler(async (event) => {
     
     scoreDetails.experienciaGestao = Math.min(experienciaGestao * 3, 30) // 3 pontos × 10 anos máximo = 30 pontos
     score += scoreDetails.experienciaGestao
+    console.log(`[${candidateId}] DEBUG - Pontos de experiência em gestão:`, scoreDetails.experienciaGestao, `(anos: ${experienciaGestao})`)
 
     // Pontuação por cursos de formação (considerar apenas títulos aprovados ou pendentes)
     // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
@@ -190,6 +199,8 @@ export default defineEventHandler(async (event) => {
     score += scoreDetails.cursosFormacao
 
     scoreDetails.total = score
+    
+    console.log(`[${candidateId}] DEBUG - Score final:`, scoreDetails)
 
     return {
       success: true,

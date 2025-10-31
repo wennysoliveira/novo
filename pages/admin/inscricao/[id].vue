@@ -835,6 +835,22 @@ const loadCandidato = async () => {
     if (response.success) {
       candidato.value = response.data
       
+      // DEBUG: Verificar dados recebidos
+      console.log('[DEBUG] Candidato carregado:', {
+        id: candidato.value.id,
+        nome: candidato.value.nomeCompleto,
+        formacaoAcademica: candidato.value.formacaoAcademica,
+        tempoExperienciaGestao: candidato.value.tempoExperienciaGestao,
+        titlesCount: candidato.value.titles?.length || 0,
+        titles: candidato.value.titles?.map((t: any) => ({
+          id: t.id,
+          type: t.type,
+          status: t.status,
+          filename: t.filename,
+          value: t.value
+        }))
+      })
+      
       // Inicializar formulários de validação para cada título
       if (candidato.value.titles) {
         candidato.value.titles.forEach((title: any) => {

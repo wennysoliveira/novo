@@ -16,6 +16,18 @@ npx prisma migrate deploy  # Aplica apenas migrações pendentes
 
 ---
 
+## ⚠️ CORREÇÃO IMEDIATA: Status NULL em Titles
+
+Se você está vendo inscrições antigas com pontuação zerada e ANEXOS vazios, execute este comando no container:
+
+```bash
+sqlite3 /app/data/prod.db "UPDATE titles SET status = 'pending' WHERE status IS NULL;"
+```
+
+O script `start-prod.sh` agora faz isso automaticamente a cada reinicialização, mas você pode executar manualmente para corrigir imediatamente.
+
+---
+
 ## 🔒 Passo a Passo Recomendado (Extra Segurança)
 
 ### 1️⃣ **Backup ANTES de Atualizar (RECOMENDADO)**
@@ -53,6 +65,7 @@ No EasyPanel:
 4. Ao iniciar, o `start-prod.sh` executará automaticamente:
    - `npx prisma generate` (regenera Prisma Client)
    - `npx prisma migrate deploy` (aplica migrações pendentes)
+   - **NOVO**: Verifica e corrige status NULL em titles automaticamente
 
 ### 4️⃣ **Verificar Logs após Deploy**
 
@@ -63,6 +76,10 @@ Após o deploy, verifique os logs para confirmar que tudo ocorreu bem:
 ✓ Banco de dados encontrado
 ✓ Migrações aplicadas com sucesso
 ✓ Tabela admin_sessions encontrada
+✓ Todos os registros de titles têm status definido  # NOVO
+# OU
+⚠ Encontrados X registros com status NULL. Atualizando para 'pending'...  # NOVO
+✓ Registros atualizados com sucesso!  # NOVO
 ```
 
 ---
@@ -99,6 +116,7 @@ cp /app/data/prod.db.backup-YYYYMMDD-HHMMSS /app/data/prod.db
 - [ ] ✅ Fazer commit e push das mudanças
 - [ ] ✅ Fazer deploy via EasyPanel
 - [ ] ✅ Verificar logs após deploy
+- [ ] ✅ **NOVO**: Verificar se registros com status NULL foram corrigidos
 - [ ] ✅ Testar funcionalidades principais
 - [ ] ✅ Verificar se dados foram preservados
 
@@ -117,6 +135,12 @@ sqlite3 /app/data/prod.db "SELECT * FROM _prisma_migrations;"
 
 # Verificar estrutura de uma tabela específica
 sqlite3 /app/data/prod.db ".schema titles"
+
+# Verificar quantos registros têm status NULL (deve ser 0)
+sqlite3 /app/data/prod.db "SELECT COUNT(*) FROM titles WHERE status IS NULL;"
+
+# Ver alguns registros de titles para debug
+sqlite3 /app/data/prod.db "SELECT id, type, status FROM titles LIMIT 10;"
 ```
 
 ---
@@ -149,6 +173,8 @@ Esta migração adiciona os campos de validação manual à tabela `titles`:
 
 **Esta migração é SEGURA** - apenas adiciona novas colunas sem remover dados existentes.
 
+**IMPORTANTE**: O script de startup agora verifica e corrige automaticamente qualquer registro com `status = NULL`, definindo como `'pending'`. Isso corrige inscrições antigas criadas antes da migração.
+
 Se você adicionar novas mudanças no `schema.prisma`:
 1. Crie nova migração localmente: `npx prisma migrate dev --name descricao_da_mudanca`
 2. Commit a migração junto com o código
@@ -162,9 +188,10 @@ Se você adicionar novas mudanças no `schema.prisma`:
 1. ✅ Commit e push do código (incluindo novas migrações se houver)
 2. ✅ Deploy via EasyPanel
 3. ✅ Script executa `prisma migrate deploy` automaticamente
-4. ✅ Dados são preservados automaticamente
+4. ✅ Script verifica e corrige status NULL em titles automaticamente
+5. ✅ Dados são preservados automaticamente
 
 **Recomendação Extra**:
 - Faça backup antes de cada deploy (só por segurança)
 - Verifique logs após deploy para confirmar sucesso
-
+- Se ver pontuação zerada após deploy, execute manualmente: `sqlite3 /app/data/prod.db "UPDATE titles SET status = 'pending' WHERE status IS NULL;"`
