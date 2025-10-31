@@ -136,6 +136,18 @@ Sem volumes configurados, os dados serão perdidos ao remover/recriar o containe
 
 - ✅ `20251030210618_init` - Migração inicial (tabelas base)
 - ✅ `20250101000000_add_admin_sessions` - Tabela de sessões persistentes
+- ✅ `20250115000000_add_title_validation_fields` - **NOVA**: Campos de validação na tabela `titles` (status, pontosAprovados, observacao, validadoPor, validadoEm)
+
+### ⚠️ Migração Importante: Campos de Validação de Títulos
+
+Esta migração adiciona os campos de validação manual à tabela `titles`:
+- `status` (pending/approved/rejected)
+- `pontosAprovados` (pontos customizados pelo admin)
+- `observacao` (observações do admin)
+- `validadoPor` (quem validou)
+- `validadoEm` (quando foi validado)
+
+**Esta migração é SEGURA** - apenas adiciona novas colunas sem remover dados existentes.
 
 Se você adicionar novas mudanças no `schema.prisma`:
 1. Crie nova migração localmente: `npx prisma migrate dev --name descricao_da_mudanca`

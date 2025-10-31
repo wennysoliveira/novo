@@ -108,9 +108,10 @@ export default defineEventHandler(async (event) => {
         ['doutorado', 'mestrado', 'pos_graduacao'].includes(t.type)
       )
       
+      // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
       const titulosFormacao = candidate.titles.filter(t => 
         ['doutorado', 'mestrado', 'pos_graduacao'].includes(t.type) && 
-        (t.status === 'approved' || t.status === 'pending')
+        (t.status === 'approved' || t.status === 'pending' || t.status === null || t.status === undefined)
       )
       
       // Somar pontos de todos os títulos de formação acadêmica
@@ -149,9 +150,10 @@ export default defineEventHandler(async (event) => {
       score += formacaoPontos
       
       // Pontuação por tempo de magistério (considerar apenas títulos aprovados ou pendentes)
+      // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
       const tempoMagisterioTitle = candidate.titles.find(t => 
         t.type === 'tempo_magisterio' && 
-        (t.status === 'approved' || t.status === 'pending')
+        (t.status === 'approved' || t.status === 'pending' || t.status === null || t.status === undefined)
       )
       
       let tempoMagisterio = 0
@@ -165,9 +167,10 @@ export default defineEventHandler(async (event) => {
       score += Math.min(tempoMagisterio, 20)
       
       // Pontuação por experiência em gestão (considerar apenas títulos aprovados ou pendentes)
+      // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
       const experienciaGestaoTitle = candidate.titles.find(t => 
         t.type === 'experiencia_gestao' && 
-        (t.status === 'approved' || t.status === 'pending')
+        (t.status === 'approved' || t.status === 'pending' || t.status === null || t.status === undefined)
       )
       
       let experienciaGestao = 0

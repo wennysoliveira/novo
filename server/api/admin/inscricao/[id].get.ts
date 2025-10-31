@@ -70,9 +70,10 @@ export default defineEventHandler(async (event) => {
     )
     
     // Buscar títulos aprovados ou pendentes de formação acadêmica
+    // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
     const titulosFormacao = candidate.titles.filter(t => 
       ['doutorado', 'mestrado', 'pos_graduacao'].includes(t.type) && 
-      (t.status === 'approved' || t.status === 'pending')
+      (t.status === 'approved' || t.status === 'pending' || t.status === null || t.status === undefined)
     )
     
     // Somar pontos de todos os títulos de formação acadêmica
@@ -83,7 +84,7 @@ export default defineEventHandler(async (event) => {
       if (title.status === 'approved' && title.pontosAprovados !== null) {
         pontos = title.pontosAprovados || 0
       }
-      // Se aprovado sem pontos customizados ou pendente, usar cálculo automático
+      // Se aprovado sem pontos customizados, pendente ou NULL, usar cálculo automático
       else if (title.type === 'doutorado' && title.filename) {
         pontos = 15
       } else if (title.type === 'mestrado' && title.filename) {
@@ -113,9 +114,10 @@ export default defineEventHandler(async (event) => {
     score += formacaoPontos
 
     // Pontuação por tempo de magistério (considerar apenas títulos aprovados ou pendentes)
+    // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
     const tempoMagisterioTitle = candidate.titles.find(t => 
       t.type === 'tempo_magisterio' && 
-      (t.status === 'approved' || t.status === 'pending')
+      (t.status === 'approved' || t.status === 'pending' || t.status === null || t.status === undefined)
     )
     
     let tempoMagisterio = 0
@@ -134,9 +136,10 @@ export default defineEventHandler(async (event) => {
 
     // Pontuação por experiência em gestão (3 pontos por ano, máximo 10 anos = 30 pontos)
     // Considerar apenas títulos aprovados ou pendentes
+    // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
     const experienciaGestaoTitle = candidate.titles.find(t => 
       t.type === 'experiencia_gestao' && 
-      (t.status === 'approved' || t.status === 'pending')
+      (t.status === 'approved' || t.status === 'pending' || t.status === null || t.status === undefined)
     )
     
     let experienciaGestao = 0
@@ -159,9 +162,10 @@ export default defineEventHandler(async (event) => {
     score += scoreDetails.experienciaGestao
 
     // Pontuação por cursos de formação (considerar apenas títulos aprovados ou pendentes)
+    // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
     const cursosFormacaoAprovados = candidate.titles.filter(t => 
       t.type === 'cursos_formacao' && 
-      (t.status === 'approved' || t.status === 'pending')
+      (t.status === 'approved' || t.status === 'pending' || t.status === null || t.status === undefined)
     )
     
     // Se algum curso foi aprovado com pontosAprovados, somar esses valores

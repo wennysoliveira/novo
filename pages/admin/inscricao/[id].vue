@@ -166,7 +166,7 @@
                :key="title.id" 
                class="mb-6 p-4 border rounded-lg"
                :class="{
-                 'border-yellow-300 bg-yellow-50': title.status === 'pending',
+                 'border-yellow-300 bg-yellow-50': title.status === 'pending' || title.status === null || title.status === undefined,
                  'border-green-300 bg-green-50': title.status === 'approved',
                  'border-red-300 bg-red-50': title.status === 'rejected'
                }">
@@ -177,11 +177,11 @@
               <div class="flex items-center gap-3 mb-3">
                 <span class="px-2 py-1 text-xs font-medium rounded"
                       :class="{
-                        'bg-yellow-200 text-yellow-800': title.status === 'pending',
+                        'bg-yellow-200 text-yellow-800': title.status === 'pending' || title.status === null || title.status === undefined,
                         'bg-green-200 text-green-800': title.status === 'approved',
                         'bg-red-200 text-red-800': title.status === 'rejected'
                       }">
-                  {{ title.status === 'pending' ? 'Pendente' : title.status === 'approved' ? 'Aprovado' : 'Rejeitado' }}
+                  {{ (title.status === 'pending' || title.status === null || title.status === undefined) ? 'Pendente' : title.status === 'approved' ? 'Aprovado' : 'Rejeitado' }}
                 </span>
               </div>
               
@@ -258,7 +258,7 @@
                :key="title.id" 
                class="mb-6 p-4 border rounded-lg"
                :class="{
-                 'border-yellow-300 bg-yellow-50': title.status === 'pending',
+                 'border-yellow-300 bg-yellow-50': title.status === 'pending' || title.status === null || title.status === undefined,
                  'border-green-300 bg-green-50': title.status === 'approved',
                  'border-red-300 bg-red-50': title.status === 'rejected'
                }">
@@ -269,11 +269,11 @@
               <div class="flex items-center gap-3 mb-3">
                 <span class="px-2 py-1 text-xs font-medium rounded"
                       :class="{
-                        'bg-yellow-200 text-yellow-800': title.status === 'pending',
+                        'bg-yellow-200 text-yellow-800': title.status === 'pending' || title.status === null || title.status === undefined,
                         'bg-green-200 text-green-800': title.status === 'approved',
                         'bg-red-200 text-red-800': title.status === 'rejected'
                       }">
-                  {{ title.status === 'pending' ? 'Pendente' : title.status === 'approved' ? 'Aprovado' : 'Rejeitado' }}
+                  {{ (title.status === 'pending' || title.status === null || title.status === undefined) ? 'Pendente' : title.status === 'approved' ? 'Aprovado' : 'Rejeitado' }}
                 </span>
               </div>
               
@@ -350,7 +350,7 @@
                :key="title.id" 
                class="mb-6 p-4 border rounded-lg"
                :class="{
-                 'border-yellow-300 bg-yellow-50': title.status === 'pending',
+                 'border-yellow-300 bg-yellow-50': title.status === 'pending' || title.status === null || title.status === undefined,
                  'border-green-300 bg-green-50': title.status === 'approved',
                  'border-red-300 bg-red-50': title.status === 'rejected'
                }">
@@ -361,11 +361,11 @@
               <div class="flex items-center gap-3 mb-3">
                 <span class="px-2 py-1 text-xs font-medium rounded"
                       :class="{
-                        'bg-yellow-200 text-yellow-800': title.status === 'pending',
+                        'bg-yellow-200 text-yellow-800': title.status === 'pending' || title.status === null || title.status === undefined,
                         'bg-green-200 text-green-800': title.status === 'approved',
                         'bg-red-200 text-red-800': title.status === 'rejected'
                       }">
-                  {{ title.status === 'pending' ? 'Pendente' : title.status === 'approved' ? 'Aprovado' : 'Rejeitado' }}
+                  {{ (title.status === 'pending' || title.status === null || title.status === undefined) ? 'Pendente' : title.status === 'approved' ? 'Aprovado' : 'Rejeitado' }}
                 </span>
               </div>
               
@@ -447,7 +447,7 @@
                :key="title.id" 
                class="mb-6 p-4 border rounded-lg"
                :class="{
-                 'border-yellow-300 bg-yellow-50': title.status === 'pending',
+                 'border-yellow-300 bg-yellow-50': title.status === 'pending' || title.status === null || title.status === undefined,
                  'border-green-300 bg-green-50': title.status === 'approved',
                  'border-red-300 bg-red-50': title.status === 'rejected'
                }">
@@ -461,11 +461,11 @@
                 </span>
                 <span class="px-2 py-1 text-xs font-medium rounded"
                       :class="{
-                        'bg-yellow-200 text-yellow-800': title.status === 'pending',
+                        'bg-yellow-200 text-yellow-800': title.status === 'pending' || title.status === null || title.status === undefined,
                         'bg-green-200 text-green-800': title.status === 'approved',
                         'bg-red-200 text-red-800': title.status === 'rejected'
                       }">
-                  {{ title.status === 'pending' ? 'Pendente' : title.status === 'approved' ? 'Aprovado' : 'Rejeitado' }}
+                  {{ (title.status === 'pending' || title.status === null || title.status === undefined) ? 'Pendente' : title.status === 'approved' ? 'Aprovado' : 'Rejeitado' }}
                 </span>
               </div>
               
@@ -530,7 +530,7 @@
                :key="experienciaGestaoTitle.id" 
                class="mb-6 p-4 border rounded-lg"
                :class="{
-                 'border-yellow-300 bg-yellow-50': experienciaGestaoTitle.status === 'pending',
+                 'border-yellow-300 bg-yellow-50': experienciaGestaoTitle.status === 'pending' || experienciaGestaoTitle.status === null || experienciaGestaoTitle.status === undefined,
                  'border-green-300 bg-green-50': experienciaGestaoTitle.status === 'approved',
                  'border-red-300 bg-red-50': experienciaGestaoTitle.status === 'rejected'
                }">
@@ -544,11 +544,11 @@
                 </span>
                 <span class="px-2 py-1 text-xs font-medium rounded"
                       :class="{
-                        'bg-yellow-200 text-yellow-800': experienciaGestaoTitle.status === 'pending',
+                        'bg-yellow-200 text-yellow-800': experienciaGestaoTitle.status === 'pending' || experienciaGestaoTitle.status === null || experienciaGestaoTitle.status === undefined,
                         'bg-green-200 text-green-800': experienciaGestaoTitle.status === 'approved',
                         'bg-red-200 text-red-800': experienciaGestaoTitle.status === 'rejected'
                       }">
-                  {{ experienciaGestaoTitle.status === 'pending' ? 'Pendente' : experienciaGestaoTitle.status === 'approved' ? 'Aprovado' : 'Rejeitado' }}
+                  {{ (experienciaGestaoTitle.status === 'pending' || experienciaGestaoTitle.status === null || experienciaGestaoTitle.status === undefined) ? 'Pendente' : experienciaGestaoTitle.status === 'approved' ? 'Aprovado' : 'Rejeitado' }}
                 </span>
               </div>
               
@@ -1030,9 +1030,10 @@ const projectedScore = computed(() => {
   
   // Formação Acadêmica
   // IMPORTANTE: SOMAR todos os títulos de formação acadêmica (doutorado + mestrado + pós-graduação)
+  // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
   const titulosFormacao = titles.filter(t => 
     ['doutorado', 'mestrado', 'pos_graduacao'].includes(t.type) && 
-    (t.status === 'approved' || t.status === 'pending')
+    (t.status === 'approved' || t.status === 'pending' || t.status === null || t.status === undefined)
   )
   
   // Somar pontos de todos os títulos de formação acadêmica
@@ -1043,8 +1044,8 @@ const projectedScore = computed(() => {
     if (title.status === 'approved' && title.pontosAprovados !== null) {
       pontos = title.pontosAprovados || 0
     } 
-    // Se pendente, usar valor do formulário ou sugerido
-    else if (title.status === 'pending') {
+    // Se pendente ou NULL (registros antigos), usar valor do formulário ou sugerido
+    else if (title.status === 'pending' || title.status === null || title.status === undefined) {
       pontos = validationForms.value[title.id]?.pontosAprovados || getSuggestedPoints(title)
     }
     // Se aprovado sem pontos customizados, usar cálculo automático
@@ -1068,9 +1069,10 @@ const projectedScore = computed(() => {
   }
   
   // Tempo de Magistério
+  // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
   const tempoMagisterioTitle = titles.find(t => 
     t.type === 'tempo_magisterio' && 
-    (t.status === 'approved' || t.status === 'pending')
+    (t.status === 'approved' || t.status === 'pending' || t.status === null || t.status === undefined)
   )
   if (tempoMagisterioTitle) {
     if (tempoMagisterioTitle.status === 'approved' && tempoMagisterioTitle.pontosAprovados !== null) {
@@ -1081,9 +1083,10 @@ const projectedScore = computed(() => {
   }
   
   // Experiência em Gestão
+  // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
   const experienciaGestaoTitle = titles.find(t => 
     t.type === 'experiencia_gestao' && 
-    (t.status === 'approved' || t.status === 'pending')
+    (t.status === 'approved' || t.status === 'pending' || t.status === null || t.status === undefined)
   )
   if (experienciaGestaoTitle) {
     if (experienciaGestaoTitle.status === 'approved' && experienciaGestaoTitle.pontosAprovados !== null) {
@@ -1094,9 +1097,10 @@ const projectedScore = computed(() => {
   }
   
   // Cursos de Formação
+  // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
   const cursosFormacaoTitles = titles.filter(t => 
     t.type === 'cursos_formacao' && 
-    (t.status === 'approved' || t.status === 'pending')
+    (t.status === 'approved' || t.status === 'pending' || t.status === null || t.status === undefined)
   )
   cursosFormacao = cursosFormacaoTitles.reduce((sum, t) => {
     if (t.status === 'approved' && t.pontosAprovados !== null) {
@@ -1117,9 +1121,10 @@ const projectedScore = computed(() => {
 })
 
 // Verificar se há títulos pendentes
+// IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
 const hasPendingTitles = computed(() => {
   if (!candidato.value?.titles) return false
-  return candidato.value.titles.some(t => t.status === 'pending')
+  return candidato.value.titles.some(t => t.status === 'pending' || t.status === null || t.status === undefined)
 })
 
 // Garantir que experiencia_gestao apareça apenas uma vez
