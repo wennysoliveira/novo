@@ -13,8 +13,21 @@ ENV NODE_ENV=production
 ENV DATABASE_URL="file:/app/data/prod.db"
 ENV UPLOAD_DIR="/app/uploads"
 
-# Garantir diretórios de dados e uploads
-RUN mkdir -p /app/data /app/uploads
+# Criar diretórios de dados e uploads com permissões corretas
+# Estes diretórios serão volumes persistentes
+RUN mkdir -p /app/data /app/uploads && \
+    chmod 755 /app/data /app/uploads && \
+    touch /app/data/.dockerkeep /app/uploads/.dockerkeep && \
+    chmod 644 /app/data/.dockerkeep /app/uploads/.dockerkeep
+
+# Declarar volumes ANTES de qualquer operação que possa escrever dados
+# IMPORTANTE: A diretiva VOLUME declara que estes diretórios devem ser volumes.
+# Para garantir persistência REAL dos dados entre rebuilds/restarts:
+# 1. No EasyPanel/Docker: Configure bind mounts ou volumes nomeados apontando para:
+#    - /app/data -> volume persistente para o banco SQLite
+#    - /app/uploads -> volume persistente para arquivos enviados
+# 2. Se não configurar bind mounts, os dados serão perdidos ao remover o container!
+VOLUME ["/app/data", "/app/uploads"]
 
 # Copy package files
 COPY package*.json ./
@@ -38,9 +51,6 @@ RUN chmod +x /app/scripts/start-prod.sh
 # Remove dev dependencies after build (mas manter prisma para migrations)
 RUN npm prune --production
 RUN npm install prisma --save
-
-# Declarar volumes para persistência (o painel pode mapear ou manter entre restarts)
-VOLUME ["/app/data", "/app/uploads"]
 
 # Expose port
 EXPOSE 3000

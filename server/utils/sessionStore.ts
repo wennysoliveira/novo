@@ -5,16 +5,17 @@ type SessionRecord = {
   lastActive: number
 }
 
-// Aumentar tempo de sessão para 30 minutos em produção
-const FIVE_MINUTES_MS = 30 * 60 * 1000 // 30 minutos
+// Tempo de sessão: 2 horas para garantir persistência
+// Isso evita que sessões sejam perdidas durante uso normal
+const FIVE_MINUTES_MS = 2 * 60 * 60 * 1000 // 2 horas
 
 export const SESSION_COOKIE_NAME = 'admin_session'
-export const SESSION_MAX_AGE_SECONDS = 30 * 60 // 30 minutos
+export const SESSION_MAX_AGE_SECONDS = 2 * 60 * 60 // 2 horas
 export const SESSION_MAX_AGE_MS = FIVE_MINUTES_MS
 
 export async function createSession(sessionId: string, username: string): Promise<void> {
   try {
-    await prisma.adminSession.upsert({
+    const result = await prisma.adminSession.upsert({
       where: { sessionId },
       update: {
         username,
@@ -26,13 +27,15 @@ export async function createSession(sessionId: string, username: string): Promis
         lastActive: new Date()
       }
     })
+    console.log(`Sessão ${sessionId.substring(0, 8)}... salva no banco de dados (ID: ${result.id})`)
   } catch (error: any) {
     console.error('Erro ao criar sessão no banco:', error)
     // Se a tabela não existir, tentar criar
-    if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
-      console.log('Tabela admin_sessions não existe. Execute as migrações do Prisma.')
+    if (error?.code === 'P2021' || error?.code === 'P2003' || error?.message?.includes('does not exist') || error?.message?.includes('no such table')) {
+      console.error('ERRO CRÍTICO: Tabela admin_sessions não existe. Execute as migrações do Prisma.')
       throw new Error('Tabela de sessões não encontrada. Execute as migrações do banco de dados.')
     }
+    // Re-throw para que o erro seja tratado no login
     throw error
   }
 }
@@ -67,10 +70,14 @@ export async function touchSession(sessionId: string): Promise<void> {
     await prisma.adminSession.update({
       where: { sessionId },
       data: { lastActive: new Date() }
-    }).catch(() => {
-      // Sessão não existe, ignorar
     })
-  } catch (error) {
+    // Sessão renovada com sucesso
+  } catch (error: any) {
+    // Se a sessão não existir ou tabela não existir, não é crítico
+    if (error?.code === 'P2025' || error?.code === 'P2021') {
+      // Sessão não encontrada ou tabela não existe
+      return
+    }
     console.error('Erro ao atualizar sessão:', error)
   }
 }
