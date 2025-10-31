@@ -60,11 +60,20 @@ model Title {
   description String?  // Descrição adicional
   uploadedAt  DateTime @default(now())
   
+  // Campos de validação manual pelo administrador
+  status      String   @default("pending") // pending, approved, rejected
+  pontosAprovados Float?  // Pontos aprovados manualmente pelo admin (sobrescreve cálculo automático)
+  observacao  String?  // Observação do administrador sobre a validação
+  validadoPor String?  // Username do admin que validou
+  validadoEm  DateTime? // Data/hora da validação
+  
   // Relacionamento
   candidateId String
   candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   
   @@map("titles")
+  @@index([status])
+  @@index([candidateId, status])
 }
 
 model ManagementPlan {

@@ -26,8 +26,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Buscar documento no banco
-    const document = await prisma.document.findUnique({
+    // Buscar documento no banco (pode ser Document ou Title)
+    let document = await prisma.document.findUnique({
       where: { id: documentId },
       include: {
         candidate: {
@@ -36,7 +36,31 @@ export default defineEventHandler(async (event) => {
       }
     })
 
+    // Se não encontrou em documents, buscar em titles
     if (!document) {
+      const title = await prisma.title.findUnique({
+        where: { id: documentId },
+        include: {
+          candidate: {
+            select: { nomeCompleto: true, cpf: true }
+          }
+        }
+      })
+
+      if (title && title.filename && title.filepath) {
+        // Converter title para formato de document
+        document = {
+          id: title.id,
+          filename: title.filename,
+          filepath: title.filepath,
+          mimeType: title.mimeType || 'application/pdf',
+          size: title.size || 0,
+          candidate: title.candidate
+        } as any
+      }
+    }
+
+    if (!document || !document.filepath) {
       throw createError({
         statusCode: 404,
         statusMessage: 'Documento não encontrado'

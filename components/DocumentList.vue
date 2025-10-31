@@ -15,37 +15,22 @@
         :key="document.id"
         class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
       >
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <div class="flex items-center">
-              <svg class="h-8 w-8 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-900 truncate">
-                  {{ getDocumentTypeLabel(document.type) }}
-                </p>
-                <p class="text-xs text-gray-500 truncate">
-                  {{ document.filename }}
-                </p>
-                <p class="text-xs text-gray-400">
-                  {{ formatFileSize(document.size) }} • {{ formatDate(document.uploadedAt) }}
-                </p>
-              </div>
-            </div>
+        <div class="flex items-start gap-3">
+          <svg class="h-8 w-8 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 truncate">
+              {{ getDocumentTypeLabel(document.type) }}
+            </p>
+            <p class="text-xs text-gray-500 truncate break-all">
+              {{ document.filename }}
+            </p>
+            <p class="text-xs text-gray-400">
+              {{ formatFileSize(document.size) }} • {{ formatDate(document.uploadedAt) }}
+            </p>
           </div>
-          
-          <div class="flex items-center space-x-2 ml-2">
-            <button
-              class="text-blue-600 hover:text-blue-800 p-1"
-              :title="`Baixar ${getDocumentTypeLabel(document.type)}`"
-              @click="downloadDocument(document)"
-            >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </button>
-            
+          <div class="flex items-center flex-shrink-0 ml-2">
             <button
               v-if="showPreview && isPreviewable(document.mimeType)"
               class="text-green-600 hover:text-green-800 p-1"

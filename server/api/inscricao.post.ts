@@ -17,10 +17,13 @@ export default defineEventHandler(async (event) => {
     const formDataObj: Record<string, any> = {}
     const files: Record<string, { buffer: Buffer; mimeType: string; filename: string }> = {}
     
+    console.log('Processando formData, total de campos:', formData?.length || 0)
+    
     for (const field of formData) {
       if (field.data) {
         if (field.filename) {
           // É um arquivo
+          console.log(`Arquivo encontrado: ${field.name}, filename: ${field.filename}, tamanho: ${field.data.length} bytes`)
           files[field.name] = {
             buffer: field.data,
             mimeType: field.type || 'application/octet-stream',
@@ -32,6 +35,9 @@ export default defineEventHandler(async (event) => {
         }
       }
     }
+    
+    console.log(`Total de arquivos extraídos: ${Object.keys(files).length}`, Object.keys(files))
+    console.log('Dados do formulário:', Object.keys(formDataObj), formDataObj)
 
     // Construir dados sem validações (com defaults seguros)
     const fallbackId = randomUUID().slice(0, 8)
@@ -128,23 +134,122 @@ export default defineEventHandler(async (event) => {
 
       // Salvar todos os arquivos enviados como documentos (sem validação)
       const documents = [] as any[]
+      const titles = [] as any[]
+      
+      console.log(`Iniciando salvamento de arquivos. Total no objeto files: ${Object.keys(files).length}`)
+      
       for (const [key, file] of Object.entries(files)) {
-        const { filepath, filename } = await saveFile(file, cpf || 'sem_cpf', key)
-        const document = await tx.document.create({
+        if (!file || !file.buffer || file.buffer.length === 0) {
+          console.log(`Pulando arquivo ${key}: arquivo inválido ou vazio`)
+          continue
+        }
+        
+        try {
+          console.log(`Processando arquivo: ${key}, tamanho: ${file.buffer.length} bytes, filename: ${file.filename}`)
+          
+          const { filepath, filename } = await saveFile(file, cpf || 'sem_cpf', key)
+          
+          // Verificar se é um título (não um documento obrigatório)
+          const isTitle = ['doutorado', 'mestrado', 'pos_graduacao', 'experiencia_gestao', 'cursos_formacao'].includes(key)
+          
+          if (isTitle) {
+            // Salvar como título
+            const title = await tx.title.create({
+              data: {
+                type: key,
+                filename,
+                filepath,
+                mimeType: file.mimeType,
+                size: file.buffer.length,
+                candidateId: candidate.id
+              }
+            })
+            titles.push(title)
+            console.log(`Título salvo: ${key} -> ${filename}`)
+          } else {
+            // Salvar como documento
+            const document = await tx.document.create({
+              data: {
+                type: key,
+                filename,
+                filepath,
+                mimeType: file.mimeType,
+                size: file.buffer.length,
+                candidateId: candidate.id
+              }
+            })
+            documents.push(document)
+            console.log(`Documento salvo: ${key} -> ${filename}`)
+          }
+        } catch (error: any) {
+          console.error(`Erro ao salvar arquivo ${key}:`, error)
+          // Continuar processando outros arquivos mesmo se um falhar
+        }
+      }
+      
+      console.log(`Arquivos processados: ${documents.length} documentos, ${titles.length} títulos`)
+
+      // Criar títulos com valores numéricos do formulário
+      // ANEXO 3.1: Tempo de magistério (em anos)
+      const tempoMagisterio = Number.parseInt(formDataObj.tempo_magisterio ?? '0') || 0
+      console.log(`tempo_magisterio recebido: ${formDataObj.tempo_magisterio} -> parseado: ${tempoMagisterio}`)
+      
+      if (tempoMagisterio > 0) {
+        const titleMagisterio = await tx.title.create({
           data: {
-            type: key,
-            filename,
-            filepath,
-            mimeType: file.mimeType,
-            size: file.buffer.length,
+            type: 'tempo_magisterio',
+            value: tempoMagisterio,
+            description: `Tempo de efetivo exercício no magistério da rede municipal: ${tempoMagisterio} anos`,
             candidateId: candidate.id
           }
         })
-        documents.push(document)
+        titles.push(titleMagisterio)
+        console.log(`Título tempo_magisterio criado com value: ${tempoMagisterio}`)
+      } else {
+        console.log('tempo_magisterio é 0 ou inválido, não criando título')
       }
 
-      // Não criar títulos automaticamente sem validação
-      const titles: any[] = []
+      // ANEXO 3.2: Experiência em gestão (em anos) - usar o campo do formulário
+      // Nota: tempoExperienciaGestao já está sendo salvo no Candidate, mas também precisamos criar o título
+      // IMPORTANTE: Se já existe um título com arquivo de experiencia_gestao, vamos atualizar com o value
+      // Caso contrário, criar um novo título apenas com o value
+      console.log(`tempoExperienciaGestao recebido: ${tempoExperienciaGestao} (tipo: ${typeof tempoExperienciaGestao})`)
+      
+      if (tempoExperienciaGestao > 0) {
+        // Buscar se já existe um título de experiencia_gestao no banco (pode ter sido criado pelos arquivos acima)
+        const existingTitleGestao = await tx.title.findFirst({
+          where: {
+            candidateId: candidate.id,
+            type: 'experiencia_gestao'
+          }
+        })
+        
+        if (existingTitleGestao) {
+          // Atualizar o título existente com o value
+          await tx.title.update({
+            where: { id: existingTitleGestao.id },
+            data: {
+              value: tempoExperienciaGestao,
+              description: `Experiência comprovada em função de gestão escolar: ${tempoExperienciaGestao} anos`
+            }
+          })
+          console.log(`Título experiencia_gestao atualizado com value: ${tempoExperienciaGestao}`)
+        } else {
+          // Criar novo título apenas com o value (sem arquivo)
+          const titleExperienciaGestao = await tx.title.create({
+            data: {
+              type: 'experiencia_gestao',
+              value: tempoExperienciaGestao,
+              description: `Experiência comprovada em função de gestão escolar: ${tempoExperienciaGestao} anos`,
+              candidateId: candidate.id
+            }
+          })
+          titles.push(titleExperienciaGestao)
+          console.log(`Título experiencia_gestao criado com value: ${tempoExperienciaGestao}`)
+        }
+      } else {
+        console.log('tempoExperienciaGestao é 0 ou inválido, não criando título')
+      }
 
       return { candidate, documents, titles }
     })

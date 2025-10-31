@@ -60,30 +60,120 @@ export default defineEventHandler(async (event) => {
     }
 
     // Pontuação por formação acadêmica
-    if (candidate.formacaoAcademica === 'Doutorado') {
-      scoreDetails.formacao = 15
-      score += 15
-    } else if (candidate.formacaoAcademica === 'Mestrado') {
-      scoreDetails.formacao = 10
-      score += 10
-    } else if (candidate.formacaoAcademica === 'Especialização') {
-      scoreDetails.formacao = 5
-      score += 5
+    // IMPORTANTE: SOMAR todos os títulos de formação acadêmica (doutorado + mestrado + pós-graduação)
+    // Considerar apenas títulos APROVADOS ou PENDENTES (rejeitados não pontuam)
+    let formacaoPontos = 0
+    
+    // Verificar se há títulos de formação (independente do status)
+    const todosTitulosFormacao = candidate.titles.filter(t => 
+      ['doutorado', 'mestrado', 'pos_graduacao'].includes(t.type)
+    )
+    
+    // Buscar títulos aprovados ou pendentes de formação acadêmica
+    const titulosFormacao = candidate.titles.filter(t => 
+      ['doutorado', 'mestrado', 'pos_graduacao'].includes(t.type) && 
+      (t.status === 'approved' || t.status === 'pending')
+    )
+    
+    // Somar pontos de todos os títulos de formação acadêmica
+    formacaoPontos = titulosFormacao.reduce((sum, title) => {
+      let pontos = 0
+      
+      // Se aprovado com pontos customizados, usar esse valor
+      if (title.status === 'approved' && title.pontosAprovados !== null) {
+        pontos = title.pontosAprovados || 0
+      }
+      // Se aprovado sem pontos customizados ou pendente, usar cálculo automático
+      else if (title.type === 'doutorado' && title.filename) {
+        pontos = 15
+      } else if (title.type === 'mestrado' && title.filename) {
+        pontos = 10
+      } else if (title.type === 'pos_graduacao' && title.filename) {
+        pontos = 5
+      }
+      
+      return sum + pontos
+    }, 0)
+    
+    // Fallback: se não houver títulos de formação mas não forem rejeitados, usar campo formacaoAcademica
+    if (formacaoPontos === 0) {
+      if (todosTitulosFormacao.length === 0 || !todosTitulosFormacao.some(t => t.status === 'rejected')) {
+        if (candidate.formacaoAcademica === 'Doutorado') {
+          formacaoPontos = 15
+        } else if (candidate.formacaoAcademica === 'Mestrado') {
+          formacaoPontos = 10
+        } else if (candidate.formacaoAcademica === 'Especialização') {
+          formacaoPontos = 5
+        }
+      }
     }
+    
+    scoreDetails.formacao = formacaoPontos
+    
+    score += formacaoPontos
 
-    // Pontuação por tempo de magistério
-    const tempoMagisterio = candidate.titles.find(t => t.type === 'tempo_magisterio')?.value || 0
+    // Pontuação por tempo de magistério (considerar apenas títulos aprovados ou pendentes)
+    const tempoMagisterioTitle = candidate.titles.find(t => 
+      t.type === 'tempo_magisterio' && 
+      (t.status === 'approved' || t.status === 'pending')
+    )
+    
+    let tempoMagisterio = 0
+    if (tempoMagisterioTitle) {
+      // Se aprovado com pontosAprovados, usar esse valor
+      if (tempoMagisterioTitle.status === 'approved' && tempoMagisterioTitle.pontosAprovados !== null) {
+        tempoMagisterio = tempoMagisterioTitle.pontosAprovados
+      } else {
+        // Senão, calcular automaticamente
+        tempoMagisterio = tempoMagisterioTitle.value || 0
+      }
+    }
+    
     scoreDetails.tempoMagisterio = Math.min(tempoMagisterio, 20)
     score += scoreDetails.tempoMagisterio
 
-    // Pontuação por experiência em gestão
-    const experienciaGestao = candidate.titles.find(t => t.type === 'experiencia_gestao')?.value || 0
-    scoreDetails.experienciaGestao = Math.min(experienciaGestao * 3, 30)
+    // Pontuação por experiência em gestão (3 pontos por ano, máximo 10 anos = 30 pontos)
+    // Considerar apenas títulos aprovados ou pendentes
+    const experienciaGestaoTitle = candidate.titles.find(t => 
+      t.type === 'experiencia_gestao' && 
+      (t.status === 'approved' || t.status === 'pending')
+    )
+    
+    let experienciaGestao = 0
+    if (experienciaGestaoTitle) {
+      // Se aprovado com pontosAprovados, usar esse valor
+      if (experienciaGestaoTitle.status === 'approved' && experienciaGestaoTitle.pontosAprovados !== null) {
+        experienciaGestao = experienciaGestaoTitle.pontosAprovados
+      } else {
+        // Senão, calcular automaticamente
+        experienciaGestao = experienciaGestaoTitle.value || 0
+        
+        // Fallback: se não tem título com value mas tem arquivo E o campo do candidato tem valor, usar o campo
+        if (experienciaGestao === 0 && experienciaGestaoTitle.filename && candidate.tempoExperienciaGestao > 0) {
+          experienciaGestao = candidate.tempoExperienciaGestao
+        }
+      }
+    }
+    
+    scoreDetails.experienciaGestao = Math.min(experienciaGestao * 3, 30) // 3 pontos × 10 anos máximo = 30 pontos
     score += scoreDetails.experienciaGestao
 
-    // Pontuação por cursos de formação
-    const cursosFormacao = candidate.titles.filter(t => t.type === 'cursos_formacao').length
-    scoreDetails.cursosFormacao = Math.min(cursosFormacao, 20)
+    // Pontuação por cursos de formação (considerar apenas títulos aprovados ou pendentes)
+    const cursosFormacaoAprovados = candidate.titles.filter(t => 
+      t.type === 'cursos_formacao' && 
+      (t.status === 'approved' || t.status === 'pending')
+    )
+    
+    // Se algum curso foi aprovado com pontosAprovados, somar esses valores
+    const pontosCursosAprovados = cursosFormacaoAprovados
+      .filter(t => t.status === 'approved' && t.pontosAprovados !== null)
+      .reduce((sum, t) => sum + (t.pontosAprovados || 0), 0)
+    
+    // Contar cursos pendentes (que ainda não foram validados)
+    const cursosPendentes = cursosFormacaoAprovados.filter(t => t.status === 'pending').length
+    
+    // Pontos = pontos aprovados manualmente + 1 ponto por curso pendente (cálculo automático)
+    scoreDetails.cursosFormacao = Math.min(pontosCursosAprovados + cursosPendentes, 20)
     score += scoreDetails.cursosFormacao
 
     scoreDetails.total = score

@@ -100,21 +100,101 @@ export default defineEventHandler(async (event) => {
       let score = 0
       
       // Pontuação por formação acadêmica
-      if (candidate.formacaoAcademica === 'Doutorado') score += 15
-      else if (candidate.formacaoAcademica === 'Mestrado') score += 10
-      else if (candidate.formacaoAcademica === 'Especialização') score += 5
+      // IMPORTANTE: SOMAR todos os títulos de formação acadêmica (doutorado + mestrado + pós-graduação)
+      // Considerar apenas títulos APROVADOS ou PENDENTES (rejeitados não pontuam)
       
-      // Pontuação por tempo de magistério (1 ponto por ano, máximo 20)
-      const tempoMagisterio = candidate.titles.find(t => t.type === 'tempo_magisterio')?.value || 0
+      // Verificar se há títulos de formação (independente do status)
+      const todosTitulosFormacao = candidate.titles.filter(t => 
+        ['doutorado', 'mestrado', 'pos_graduacao'].includes(t.type)
+      )
+      
+      const titulosFormacao = candidate.titles.filter(t => 
+        ['doutorado', 'mestrado', 'pos_graduacao'].includes(t.type) && 
+        (t.status === 'approved' || t.status === 'pending')
+      )
+      
+      // Somar pontos de todos os títulos de formação acadêmica
+      let formacaoPontos = titulosFormacao.reduce((sum, title) => {
+        let pontos = 0
+        
+        // Se aprovado com pontos customizados, usar esse valor
+        if (title.status === 'approved' && title.pontosAprovados !== null) {
+          pontos = title.pontosAprovados || 0
+        }
+        // Se aprovado sem pontos customizados ou pendente, usar cálculo automático
+        else if (title.type === 'doutorado' && title.filename) {
+          pontos = 15
+        } else if (title.type === 'mestrado' && title.filename) {
+          pontos = 10
+        } else if (title.type === 'pos_graduacao' && title.filename) {
+          pontos = 5
+        }
+        
+        return sum + pontos
+      }, 0)
+      
+      // Fallback: se não houver títulos de formação mas não forem rejeitados, usar campo formacaoAcademica
+      if (formacaoPontos === 0) {
+        if (todosTitulosFormacao.length === 0 || !todosTitulosFormacao.some(t => t.status === 'rejected')) {
+          if (candidate.formacaoAcademica === 'Doutorado') {
+            formacaoPontos = 15
+          } else if (candidate.formacaoAcademica === 'Mestrado') {
+            formacaoPontos = 10
+          } else if (candidate.formacaoAcademica === 'Especialização') {
+            formacaoPontos = 5
+          }
+        }
+      }
+      
+      score += formacaoPontos
+      
+      // Pontuação por tempo de magistério (considerar apenas títulos aprovados ou pendentes)
+      const tempoMagisterioTitle = candidate.titles.find(t => 
+        t.type === 'tempo_magisterio' && 
+        (t.status === 'approved' || t.status === 'pending')
+      )
+      
+      let tempoMagisterio = 0
+      if (tempoMagisterioTitle) {
+        if (tempoMagisterioTitle.status === 'approved' && tempoMagisterioTitle.pontosAprovados !== null) {
+          tempoMagisterio = tempoMagisterioTitle.pontosAprovados
+        } else {
+          tempoMagisterio = tempoMagisterioTitle.value || 0
+        }
+      }
       score += Math.min(tempoMagisterio, 20)
       
-      // Pontuação por experiência em gestão (3 pontos por ano, máximo 10)
-      const experienciaGestao = candidate.titles.find(t => t.type === 'experiencia_gestao')?.value || 0
+      // Pontuação por experiência em gestão (considerar apenas títulos aprovados ou pendentes)
+      const experienciaGestaoTitle = candidate.titles.find(t => 
+        t.type === 'experiencia_gestao' && 
+        (t.status === 'approved' || t.status === 'pending')
+      )
+      
+      let experienciaGestao = 0
+      if (experienciaGestaoTitle) {
+        if (experienciaGestaoTitle.status === 'approved' && experienciaGestaoTitle.pontosAprovados !== null) {
+          experienciaGestao = experienciaGestaoTitle.pontosAprovados
+        } else {
+          experienciaGestao = experienciaGestaoTitle.value || 0
+          if (experienciaGestao === 0 && experienciaGestaoTitle.filename && candidate.tempoExperienciaGestao > 0) {
+            experienciaGestao = candidate.tempoExperienciaGestao
+          }
+        }
+      }
       score += Math.min(experienciaGestao * 3, 30)
       
-      // Pontuação por cursos de formação (1 ponto por curso, máximo 20)
-      const cursosFormacao = candidate.titles.filter(t => t.type === 'cursos_formacao').length
-      score += Math.min(cursosFormacao, 20)
+      // Pontuação por cursos de formação (considerar apenas títulos aprovados ou pendentes)
+      const cursosFormacaoAprovados = candidate.titles.filter(t => 
+        t.type === 'cursos_formacao' && 
+        (t.status === 'approved' || t.status === 'pending')
+      )
+      
+      const pontosCursosAprovados = cursosFormacaoAprovados
+        .filter(t => t.status === 'approved' && t.pontosAprovados !== null)
+        .reduce((sum, t) => sum + (t.pontosAprovados || 0), 0)
+      
+      const cursosPendentes = cursosFormacaoAprovados.filter(t => t.status === 'pending').length
+      score += Math.min(pontosCursosAprovados + cursosPendentes, 20)
 
       return {
         ...candidate,
