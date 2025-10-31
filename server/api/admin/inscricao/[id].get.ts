@@ -69,6 +69,12 @@ export default defineEventHandler(async (event) => {
       ['doutorado', 'mestrado', 'pos_graduacao'].includes(t.type)
     )
     
+    // DEBUG
+    console.log(`[${candidateId}] DEBUG - Total de títulos na tabela:`, candidate.titles.length)
+    console.log(`[${candidateId}] DEBUG - Títulos de formação:`, todosTitulosFormacao.length)
+    console.log(`[${candidateId}] DEBUG - formacaoAcademica campo:`, candidate.formacaoAcademica)
+    console.log(`[${candidateId}] DEBUG - tempoExperienciaGestao campo:`, candidate.tempoExperienciaGestao)
+    
     // Buscar títulos aprovados ou pendentes de formação acadêmica
     // IMPORTANTE: Tratar NULL como 'pending' (para registros antigos antes da migração)
     const titulosFormacao = candidate.titles.filter(t => 
@@ -111,6 +117,8 @@ export default defineEventHandler(async (event) => {
         } else if (candidate.formacaoAcademica === 'Especialização') {
           formacaoPontos = 5
         }
+        // Licenciatura ou outros não dão pontos para formação acadêmica conforme edital
+        // (mas não rejeitamos, só não pontuam)
       }
     }
     
