@@ -25,16 +25,20 @@ export default defineEventHandler(async (event) => {
 
     const sessionId = globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`
     createSession(sessionId, validUsername)
+    
+    console.log('Login: sessão criada com ID:', sessionId.substring(0, 8) + '...')
 
     setCookie(event, SESSION_COOKIE_NAME, sessionId, {
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
       maxAge: SESSION_MAX_AGE_SECONDS,
-      secure: process.env.NODE_ENV === 'production'
+      secure: false // Desabilitado temporariamente para debug
     })
 
-    return { success: true }
+    console.log('Login: cookie configurado:', SESSION_COOKIE_NAME)
+
+    return { success: true, sessionId: sessionId.substring(0, 8) + '...' }
   } catch (error: any) {
     if (error?.statusCode) throw error
     throw createError({ statusCode: 500, statusMessage: 'Erro interno do servidor' })

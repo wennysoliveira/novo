@@ -1,18 +1,40 @@
 import { prisma } from '~/server/utils/database'
-import { getSession, isSessionExpired, SESSION_COOKIE_NAME } from '~/server/utils/sessionStore'
+import { getSession, isSessionExpired, touchSession, SESSION_COOKIE_NAME } from '~/server/utils/sessionStore'
 
 export default defineEventHandler(async (event) => {
   try {
     // Verificar autenticação
     const sessionId = getCookie(event, SESSION_COOKIE_NAME)
-    const session = getSession(sessionId)
     
-    if (!session || isSessionExpired(session)) {
+    console.log('Verificando sessão - sessionId:', sessionId ? 'presente' : 'ausente')
+    
+    if (!sessionId) {
       throw createError({
         statusCode: 401,
-        statusMessage: 'Não autorizado'
+        statusMessage: 'Não autorizado - sessão não encontrada'
       })
     }
+    
+    const session = getSession(sessionId)
+    
+    console.log('Sessão encontrada:', session ? 'sim' : 'não')
+    
+    if (!session) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Não autorizado - sessão inválida'
+      })
+    }
+    
+    if (isSessionExpired(session)) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Não autorizado - sessão expirada'
+      })
+    }
+    
+    // Renovar sessão
+    touchSession(sessionId)
 
     const query = getQuery(event)
     const page = parseInt(query.page as string) || 1
