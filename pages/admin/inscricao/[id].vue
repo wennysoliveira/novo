@@ -152,7 +152,13 @@
 
         <!-- Documentos Obrigatórios -->
         <DocumentList
-          :documents="candidato.documents.filter(d => ['rg', 'cpf', 'comprovante_residencia', 'foto_3x4', 'qualificacao_profissional', 'declaracao_experiencia', 'titulo_eleitor', 'certificado_reservista'].includes(d.type))"
+          :documents="candidato.documents.filter(d => {
+            // Apenas documentos obrigatórios (excluir qualquer tipo de título que possa ter sido salvo incorretamente como Document)
+            const tiposObrigatorios = ['rg', 'cpf', 'comprovante_residencia', 'foto_3x4', 'qualificacao_profissional', 'declaracao_experiencia', 'titulo_eleitor', 'certificado_reservista']
+            const tiposTitulos = ['doutorado', 'mestrado', 'pos_graduacao', 'experiencia_gestao', 'tempo_magisterio', 'cursos_formacao']
+            // Incluir apenas se for obrigatório E não for um tipo de título
+            return tiposObrigatorios.includes(d.type) && !tiposTitulos.includes(d.type)
+          })"
           title="Documentos Obrigatórios"
           :show-preview="true"
         />
