@@ -415,9 +415,20 @@ const submitForm = async () => {
       body: formData
     })
     
-    if (response.success) {
-      // Redirecionar para página de confirmação com protocolo e candidateId
-      await navigateTo(`/inscricao/confirmacao?protocolo=${response.protocolo}&candidateId=${response.candidateId}`)
+    console.log('Resposta da inscrição:', response)
+    if (response?.success && response.protocolo && response.candidateId) {
+      const target = `/inscricao/confirmacao?protocolo=${response.protocolo}&candidateId=${response.candidateId}`
+      console.log('Redirecionando para confirmação:', target)
+      
+      // Usar window.location.href diretamente para garantir redirecionamento
+      if (process.client) {
+        window.location.href = target
+      } else {
+        // Fallback para SSR
+        await navigateTo(target)
+      }
+    } else {
+      console.warn('Inscrição sem dados suficientes para confirmar:', response)
     }
     
   } catch (error: any) {

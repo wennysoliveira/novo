@@ -250,7 +250,6 @@
 // Meta
 definePageMeta({
   title: 'Dashboard Administrativo'
-  // middleware: 'admin-auth' // Removido - acesso direto
 })
 
 // Estado
@@ -315,8 +314,60 @@ const loadInscricoes = async () => {
 
     applyFilters()
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao carregar inscrições:', error)
+    
+    // Extrair status code do erro
+    const statusCode = error?.statusCode || error?.status || error?.response?.status || error?.data?.statusCode
+    
+    // SÓ redirecionar se for erro 401 (não autorizado)
+    // Outros erros (500, network, etc) não devem causar logout
+    if (statusCode === 401) {
+      console.log('Erro 401 detectado: Sessão não encontrada ou expirada, redirecionando para login...')
+      
+      // Aguardar um pouco antes de redirecionar para garantir que não é um erro temporário
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Verificar novamente a sessão antes de redirecionar (evitar logout falso)
+      try {
+        const doubleCheck = await $fetch('/api/admin/session', {
+          method: 'GET',
+          credentials: 'include',
+          retry: false
+        })
+        
+        // Se a segunda verificação passou, não redirecionar (foi erro temporário)
+        if (doubleCheck?.ok) {
+          console.log('Segunda verificação passou, mantendo sessão')
+          // Tentar carregar novamente
+          await loadInscricoes()
+          return
+        }
+      } catch (doubleCheckError: any) {
+        // Se também falhou, realmente não tem sessão
+        const doubleStatusCode = doubleCheckError?.statusCode || doubleCheckError?.status
+        if (doubleStatusCode === 401) {
+          console.log('Segunda verificação também falhou (401), redirecionando para login')
+          if (process.client) {
+            window.location.href = '/admin/login'
+          } else {
+            await navigateTo('/admin/login')
+          }
+          return
+        }
+      }
+      
+      // Redirecionar apenas se confirmado
+      if (process.client) {
+        window.location.href = '/admin/login'
+      } else {
+        await navigateTo('/admin/login')
+      }
+      return
+    }
+    
+    // Para outros erros, apenas limpar dados mas NÃO redirecionar
+    console.warn('Erro não-401 ao carregar inscrições:', statusCode, '- Mantendo sessão ativa')
     allInscricoes.value = []
     inscricoes.value = []
     pagination.value.total = 0
@@ -443,7 +494,7 @@ const handleLogout = async () => {
   }
 }
 
-// Carregar dados iniciais
+// Carregar dados iniciais (a verificação de sessão será feita pelo loadInscricoes)
 onMounted(() => {
   loadInscricoes()
 })

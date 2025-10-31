@@ -6,12 +6,15 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
+    "prebuild": "npx prisma generate",
     "dev": "nuxt dev",
+    "predev": "npx prisma generate",
     "start": "node .output/server/index.mjs",
+    "prestart": "npx prisma generate",
     "start:prod": "npx prisma migrate deploy || npx prisma db push && node .output/server/index.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "npx prisma generate && nuxt prepare"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.9.0",

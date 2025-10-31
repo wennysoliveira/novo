@@ -1,0 +1,77 @@
+===============================================================================
+CONFIGURAÇÃO DE VOLUMES PARA EASYPANEL
+===============================================================================
+
+BANCO DE DADOS (SQLite)
+---------------------------------------------------------------------------
+Container Path: /app/data
+Host Path: /data/gestao-escolar/db (ou qualquer caminho no servidor)
+Type: Bind Mount
+
+O arquivo do banco será criado automaticamente em:
+Container: /app/data/prod.db
+Host: /data/gestao-escolar/db/prod.db (após montar o volume)
+
+
+UPLOADS (Arquivos enviados)
+---------------------------------------------------------------------------
+Container Path: /app/uploads
+Host Path: /data/gestao-escolar/uploads (ou qualquer caminho no servidor)
+Type: Bind Mount
+
+Os arquivos serão salvos em:
+Container: /app/uploads/...
+Host: /data/gestao-escolar/uploads/...
+
+
+===============================================================================
+CONFIGURAÇÃO NO EASYPANEL
+===============================================================================
+
+1. Vá em Settings → Volumes (ou Storage/Mounts)
+
+2. Adicione Volume 1:
+   ┌─────────────────────────────────────────────────────────────┐
+   │ Container Path:  /app/data                                  │
+   │ Host Path:       /data/gestao-escolar/db                    │
+   │ Type:            Bind Mount                                  │
+   └─────────────────────────────────────────────────────────────┘
+
+3. Adicione Volume 2:
+   ┌─────────────────────────────────────────────────────────────┐
+   │ Container Path:  /app/uploads                               │
+   │ Host Path:       /data/gestao-escolar/uploads              │
+   │ Type:            Bind Mount                                  │
+   └─────────────────────────────────────────────────────────────┘
+
+
+===============================================================================
+CRIAR DIRETÓRIOS NO SERVIDOR (SSH)
+===============================================================================
+
+Execute no servidor via SSH:
+
+sudo mkdir -p /data/gestao-escolar/db
+sudo mkdir -p /data/gestao-escolar/uploads
+sudo chmod 755 /data/gestao-escolar/db
+sudo chmod 755 /data/gestao-escolar/uploads
+sudo chown -R root:root /data/gestao-escolar/
+
+
+===============================================================================
+VERIFICAÇÃO
+===============================================================================
+
+Após configurar e reiniciar, os logs devem mostrar:
+
+✓ Diretório /app/data é gravável
+✓ Diretório /app/uploads é gravável
+✓ Banco de dados encontrado: /app/data/prod.db
+
+Se aparecer "⚠ AVISO: Diretório não é gravável", verifique:
+1. Se os volumes foram configurados corretamente
+2. Se os diretórios existem no servidor
+3. Se as permissões estão corretas
+
+===============================================================================
+

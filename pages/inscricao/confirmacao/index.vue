@@ -253,35 +253,23 @@
 </template>
 
 <script setup lang="ts">
-// Meta
-definePageMeta({
-  title: 'Inscrição Confirmada'
-})
+definePageMeta({ title: 'Inscrição Confirmada' })
 
-// Obter protocolo e candidateId da URL
 const route = useRoute()
 const protocolo = route.query.protocolo as string
 const candidateId = route.query.candidateId as string
 
-// Estado para dados da inscrição
 const inscricaoData = ref<any>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-// Buscar dados da inscrição
 onMounted(async () => {
   try {
     loading.value = true
-    
     const queryParams: any = {}
     if (protocolo) queryParams.protocolo = protocolo
     if (candidateId) queryParams.candidateId = candidateId
-    
-    const response: any = await $fetch('/api/inscricao/confirmacao', {
-      method: 'GET',
-      query: queryParams
-    })
-    
+    const response: any = await $fetch('/api/inscricao/confirmacao', { method: 'GET', query: queryParams })
     if (response?.success && response.data) {
       inscricaoData.value = response.data
       console.log('Dados da inscrição carregados:', response.data)
@@ -296,28 +284,17 @@ onMounted(async () => {
   }
 })
 
-// Função para formatar data e hora
 const formatDateTime = (date: string | Date): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date
-  return dateObj.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  })
+  return dateObj.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
-// Função para formatar CPF
 const formatCPF = (cpf: string): string => {
   if (!cpf) return ''
-  // Remove caracteres não numéricos
   const cleaned = cpf.replace(/\D/g, '')
-  // Formata como XXX.XXX.XXX-XX
-  if (cleaned.length === 11) {
-    return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-  }
+  if (cleaned.length === 11) return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
   return cpf
 }
 </script>
+
+

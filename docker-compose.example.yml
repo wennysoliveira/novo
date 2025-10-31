@@ -1,0 +1,30 @@
+# Exemplo de docker-compose.yml para referência
+# O EasyPanel pode usar esta configuração como base
+
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/data/prod.db
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      # IMPORTANTE: Estes volumes garantem persistência dos dados
+      # Opção 1: Bind Mounts (mais controle sobre localização)
+      - /data/gestao-escolar/db:/app/data
+      - /data/gestao-escolar/uploads:/app/uploads
+      
+      # Opção 2: Named Volumes (gerenciados pelo Docker)
+      # - gestao-escolar-db:/app/data
+      # - gestao-escolar-uploads:/app/uploads
+    restart: unless-stopped
+
+# Descomente se usar Named Volumes
+# volumes:
+#   gestao-escolar-db:
+#   gestao-escolar-uploads:
+
