@@ -287,25 +287,14 @@
             ← Anterior
           </button>
           
-          <div class="flex space-x-4">
-            <button
-              type="button"
-              class="btn-secondary"
-              @click="saveDraft"
-              :disabled="isSubmitting"
-            >
-              Salvar Rascunho
-            </button>
-            
-            <button
-              type="submit"
-              class="btn-primary"
-              :disabled="isSubmitting"
-            >
-              <span v-if="isSubmitting">Enviando...</span>
-              <span v-else>Enviar Inscrição</span>
-            </button>
-          </div>
+          <button
+            type="submit"
+            class="btn-primary"
+            :disabled="isSubmitting"
+          >
+            <span v-if="isSubmitting">Enviando...</span>
+            <span v-else>Enviar Inscrição</span>
+          </button>
         </div>
       </form>
     </main>
@@ -400,10 +389,6 @@ const goBack = () => {
 }
 
 // Ações do formulário
-const saveDraft = () => {
-  // Implementar salvamento de rascunho
-  console.log('Salvando rascunho...')
-}
 
 const submitForm = async () => {
   // Limpar erro anterior

@@ -56,9 +56,9 @@ export default defineEventHandler(async (event) => {
     // Ler arquivo
     const fileBuffer = await readFile(document.filepath)
 
-    // Definir headers para download
+    // Definir headers para renderização inline no navegador
     setHeader(event, 'Content-Type', document.mimeType)
-    setHeader(event, 'Content-Disposition', `attachment; filename="${document.filename}"`)
+    setHeader(event, 'Content-Disposition', `inline; filename="${document.filename}"`)
     setHeader(event, 'Content-Length', document.size.toString())
 
     return fileBuffer
