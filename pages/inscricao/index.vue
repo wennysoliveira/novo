@@ -27,6 +27,20 @@
 
     <!-- Form -->
     <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Mensagem de Erro -->
+      <div v-if="errorMessage" class="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-red-700 font-medium">{{ errorMessage }}</p>
+          </div>
+        </div>
+      </div>
+
       <form @submit.prevent="submitForm" class="space-y-8">
         <!-- Seção 1: Informações Pessoais -->
         <div class="card">
@@ -308,6 +322,7 @@ definePageMeta({
 
 // Composables
 const isSubmitting = ref(false)
+const errorMessage = ref('')
 
 const { isManagementPlanPeriod, managementPlanMessage } = useDateRange()
 
@@ -391,7 +406,8 @@ const saveDraft = () => {
 }
 
 const submitForm = async () => {
-  // Sem validações: envio direto
+  // Limpar erro anterior
+  errorMessage.value = ''
   
   isSubmitting.value = true
   
@@ -429,11 +445,23 @@ const submitForm = async () => {
       }
     } else {
       console.warn('Inscrição sem dados suficientes para confirmar:', response)
+      errorMessage.value = response?.message || 'Erro ao processar inscrição. Tente novamente.'
     }
     
   } catch (error: any) {
     console.error('Erro na inscrição:', error)
+    
+    // Extrair mensagem de erro
+    const statusCode = error?.statusCode || error?.status || error?.response?.status
+    const message = error?.data?.statusMessage || error?.data?.message || error?.statusMessage || error?.message || 'Erro ao processar inscrição. Tente novamente.'
+    
     // Mostrar erro para o usuário
+    errorMessage.value = message
+    
+    // Scroll para o topo para mostrar a mensagem de erro
+    if (process.client) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   } finally {
     isSubmitting.value = false
   }

@@ -36,9 +36,11 @@ export default defineEventHandler(async (event) => {
     // Construir dados sem validações (com defaults seguros)
     const fallbackId = randomUUID().slice(0, 8)
     const nomeCompleto = formDataObj.nomeCompleto ?? ''
-    const cpf = formDataObj.cpf && String(formDataObj.cpf).trim() !== ''
-      ? String(formDataObj.cpf).replace(/\D/g, '') // Remove caracteres não numéricos
+    // Normalizar CPF: remover todos os caracteres não numéricos
+    const cpfRaw = formDataObj.cpf && String(formDataObj.cpf).trim() !== ''
+      ? String(formDataObj.cpf)
       : `temp-${fallbackId}`
+    const cpf = cpfRaw.replace(/\D/g, '') // Remove caracteres não numéricos
     const email = formDataObj.email && String(formDataObj.email).trim() !== ''
       ? String(formDataObj.email)
       : `temp-${fallbackId}@example.com`
@@ -50,25 +52,45 @@ export default defineEventHandler(async (event) => {
     const sexo = formDataObj.sexo ?? null
 
     // Verificar se CPF já existe (evitar duplicatas)
-    if (cpf && cpf !== `temp-${fallbackId}`) {
+    // CPF já está normalizado acima
+    if (cpf && cpf.length >= 11 && cpf !== `temp${fallbackId}`.replace(/\D/g, '')) {
+      console.log(`Verificando se CPF ${cpf} já existe...`)
+      
+      // Buscar candidato existente com CPF normalizado
       const existingCandidate = await prisma.candidate.findUnique({
         where: { cpf }
       })
       
-      if (existingCandidate) {
-        // CPF já existe - retornar protocolo existente
+      // Se não encontrou diretamente, buscar todos e comparar CPFs normalizados
+      if (!existingCandidate) {
+        const allCandidates = await prisma.candidate.findMany({
+          select: { id: true, cpf: true }
+        })
+        
+        // Comparar CPFs normalizados
+        const found = allCandidates.find(c => {
+          const existingCpfNormalized = String(c.cpf).replace(/\D/g, '')
+          return existingCpfNormalized === cpf && existingCpfNormalized.length >= 11
+        })
+        
+        if (found) {
+          const protocoloExistente = `SEG-${found.id.slice(-8).toUpperCase()}`
+          console.log(`CPF ${cpf} já cadastrado (normalizado). Protocolo existente: ${protocoloExistente}`)
+          
+          throw createError({
+            statusCode: 400,
+            statusMessage: `Este CPF já está cadastrado. Protocolo da inscrição anterior: ${protocoloExistente}. Entre em contato caso tenha dúvidas.`
+          })
+        }
+      } else {
+        // CPF encontrado diretamente
         const protocoloExistente = `SEG-${existingCandidate.id.slice(-8).toUpperCase()}`
         console.log(`CPF ${cpf} já cadastrado. Protocolo existente: ${protocoloExistente}`)
         
-        return {
-          success: true,
-          message: 'Inscrição já existe. Retornando protocolo da inscrição anterior.',
-          protocolo: protocoloExistente,
-          candidateId: existingCandidate.id,
-          alreadyExists: true,
-          documentsCount: 0,
-          titlesCount: 0
-        }
+        throw createError({
+          statusCode: 400,
+          statusMessage: `Este CPF já está cadastrado. Protocolo da inscrição anterior: ${protocoloExistente}. Entre em contato caso tenha dúvidas.`
+        })
       }
     }
 
@@ -89,11 +111,11 @@ export default defineEventHandler(async (event) => {
 
     // Criar candidato e documentos em uma transação
     const result = await prisma.$transaction(async (tx) => {
-      // Criar candidato
+      // Criar candidato (CPF já está normalizado)
       const candidate = await tx.candidate.create({
         data: {
           nomeCompleto,
-          cpf,
+          cpf, // CPF já normalizado (apenas números)
           email,
           telefone,
           unidadeEnsino,
