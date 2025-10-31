@@ -1,16 +1,21 @@
 import { prisma } from '~/server/utils/database'
 import { readFile, fileExists } from '~/server/utils/fileHandler'
+import { getSession, isSessionExpired, touchSession, SESSION_COOKIE_NAME } from '~/server/utils/sessionStore'
 
 export default defineEventHandler(async (event) => {
   try {
     // Verificar autenticação
-    const session = getCookie(event, 'admin-session')
-    if (!session || session !== 'true') {
+    const sessionId = getCookie(event, SESSION_COOKIE_NAME)
+    const session = await getSession(sessionId)
+    
+    if (!session || isSessionExpired(session)) {
       throw createError({
         statusCode: 401,
         statusMessage: 'Não autorizado'
       })
     }
+    
+    await touchSession(sessionId!)
 
     const documentId = getRouterParam(event, 'id')
     

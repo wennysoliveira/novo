@@ -39,5 +39,5 @@ VOLUME ["/app/data", "/app/uploads"]
 # Expose port
 EXPOSE 3000
 
-# Start the application: aplica migrations (se existirem) ou faz db push
-CMD ["sh", "-c", "npx prisma migrate deploy || npx prisma db push && node .output/server/index.mjs"]
+# Start the application: cria diretórios, aplica migrations e inicia servidor
+CMD ["sh", "-c", "mkdir -p /app/data /app/uploads && chmod 755 /app/data /app/uploads && (npx prisma migrate deploy 2>/dev/null || npx prisma db push) && node .output/server/index.mjs"]

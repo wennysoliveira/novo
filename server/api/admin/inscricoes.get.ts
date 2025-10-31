@@ -10,7 +10,8 @@ export default defineEventHandler(async (event) => {
     const allCookies = getCookie(event)
     console.log('Todos os cookies recebidos:', Object.keys(allCookies || {}))
     console.log('Verificando sessão - sessionId:', sessionId ? `presente (${sessionId.substring(0, 8)}...)` : 'ausente')
-    console.log('Tamanho da session store:', getSessionStoreSize())
+    const storeSize = await getSessionStoreSize()
+    console.log('Tamanho da session store:', storeSize)
     
     if (!sessionId) {
       console.log('ERRO: Cookie admin_session não encontrado')
@@ -20,7 +21,7 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    const session = getSession(sessionId)
+    const session = await getSession(sessionId)
     
     console.log('Sessão encontrada:', session ? 'sim' : 'não')
     
@@ -41,7 +42,7 @@ export default defineEventHandler(async (event) => {
     }
     
     // Renovar sessão
-    touchSession(sessionId)
+    await touchSession(sessionId)
 
     const query = getQuery(event)
     const page = parseInt(query.page as string) || 1

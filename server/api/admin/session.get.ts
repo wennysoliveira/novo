@@ -2,19 +2,19 @@ import { getSession, isSessionExpired, touchSession, destroySession, SESSION_COO
 
 export default defineEventHandler(async (event) => {
   const sessionId = getCookie(event, SESSION_COOKIE_NAME)
-  const record = getSession(sessionId)
+  const record = await getSession(sessionId)
 
   if (!record) {
     throw createError({ statusCode: 401, statusMessage: 'Não autenticado' })
   }
 
   if (isSessionExpired(record)) {
-    destroySession(sessionId)
+    await destroySession(sessionId)
     deleteCookie(event, SESSION_COOKIE_NAME, { path: '/' })
     throw createError({ statusCode: 401, statusMessage: 'Sessão expirada' })
   }
 
-  touchSession(sessionId!)
+  await touchSession(sessionId!)
 
   setCookie(event, SESSION_COOKIE_NAME, sessionId!, {
     httpOnly: true,

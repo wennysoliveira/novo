@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const sessionId = globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-    createSession(sessionId, validUsername)
+    await createSession(sessionId, validUsername)
     
     console.log('Login: sessão criada com ID:', sessionId.substring(0, 8) + '...')
 

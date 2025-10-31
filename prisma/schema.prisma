@@ -111,3 +111,16 @@ model Resource {
   
   @@map("resources")
 }
+
+// Tabela para armazenar sessões de administrador
+model AdminSession {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  username  String
+  lastActive DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  
+  @@map("admin_sessions")
+  @@index([sessionId])
+  @@index([lastActive])
+}
