@@ -183,6 +183,11 @@ export default defineEventHandler(async (event) => {
             experienciaGestao = candidate.tempoExperienciaGestao
           }
         }
+      } else {
+        // FALLBACK: Se não há título mas o candidato tem tempoExperienciaGestao (inscrições antigas)
+        if (candidate.tempoExperienciaGestao > 0) {
+          experienciaGestao = candidate.tempoExperienciaGestao
+        }
       }
       score += Math.min(experienciaGestao * 3, 30)
       

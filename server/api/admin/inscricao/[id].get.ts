@@ -130,6 +130,9 @@ export default defineEventHandler(async (event) => {
         tempoMagisterio = tempoMagisterioTitle.value || 0
       }
     }
+    // FALLBACK: Se não há título mas o candidato tem dados (inscrições antigas sem títulos)
+    // Nota: Para inscrições antigas, não temos campo direto de tempo de magistério no Candidate
+    // Então só pontua se houver título
     
     scoreDetails.tempoMagisterio = Math.min(tempoMagisterio, 20)
     score += scoreDetails.tempoMagisterio
@@ -155,6 +158,12 @@ export default defineEventHandler(async (event) => {
         if (experienciaGestao === 0 && experienciaGestaoTitle.filename && candidate.tempoExperienciaGestao > 0) {
           experienciaGestao = candidate.tempoExperienciaGestao
         }
+      }
+    } else {
+      // FALLBACK: Se não há título mas o candidato tem tempoExperienciaGestao (inscrições antigas)
+      // Calcular pontos baseado no campo direto do candidato
+      if (candidate.tempoExperienciaGestao > 0) {
+        experienciaGestao = candidate.tempoExperienciaGestao
       }
     }
     

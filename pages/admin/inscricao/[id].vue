@@ -1057,11 +1057,14 @@ const projectedScore = computed(() => {
   }, 0)
   
   // Fallback: se não houver títulos de formação mas não forem rejeitados, usar campo formacaoAcademica
+  // IMPORTANTE: Para inscrições antigas que não têm títulos, usar o campo direto do candidato
   if (formacao === 0) {
     const todosTitulosFormacao = titles.filter(t => 
       ['doutorado', 'mestrado', 'pos_graduacao'].includes(t.type)
     )
-    if (todosTitulosFormacao.length === 0 || !todosTitulosFormacao.some(t => t.status === 'rejected')) {
+    // Se não há títulos OU se há títulos mas nenhum foi rejeitado, usar fallback
+    const algumRejeitado = todosTitulosFormacao.some(t => t.status === 'rejected')
+    if (todosTitulosFormacao.length === 0 || !algumRejeitado) {
       if (candidato.value.formacaoAcademica === 'Doutorado') formacao = 15
       else if (candidato.value.formacaoAcademica === 'Mestrado') formacao = 10
       else if (candidato.value.formacaoAcademica === 'Especialização') formacao = 5
@@ -1093,6 +1096,11 @@ const projectedScore = computed(() => {
       experienciaGestao = experienciaGestaoTitle.pontosAprovados || 0
     } else {
       experienciaGestao = validationForms.value[experienciaGestaoTitle.id]?.pontosAprovados || getSuggestedPoints(experienciaGestaoTitle)
+    }
+  } else {
+    // FALLBACK: Se não há título mas o candidato tem tempoExperienciaGestao (inscrições antigas)
+    if (candidato.value?.tempoExperienciaGestao > 0) {
+      experienciaGestao = Math.min(candidato.value.tempoExperienciaGestao * 3, 30)
     }
   }
   
