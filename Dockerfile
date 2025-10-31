@@ -32,10 +32,13 @@ VOLUME ["/app/data", "/app/uploads"]
 # Copy package files
 COPY package*.json ./
 
+# Copy Prisma schema before npm install (needed for postinstall script)
+COPY prisma ./prisma
+
 # Install dependencies (including dev dependencies for build)
 RUN npm install --include=dev
 
-# Copy source code
+# Copy source code (overwrites prisma if needed)
 COPY . .
 
 # Generate Prisma client

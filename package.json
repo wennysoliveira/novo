@@ -14,7 +14,7 @@
     "start:prod": "npx prisma migrate deploy || npx prisma db push && node .output/server/index.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "npx prisma generate && nuxt prepare"
+    "postinstall": "(npx prisma generate || echo 'Prisma schema not found, will generate later') && nuxt prepare"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.9.0",
