@@ -1,12 +1,12 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
-    <header class="bg-white shadow-sm">
+    <header class="bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm border-b border-blue-100">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-6">
           <div>
             <h1 class="text-3xl font-bold text-gray-900">Seletivo de Gestores Escolares</h1>
-            <p class="text-lg text-gray-600">Prefeitura Municipal de Santa Rita</p>
+            <p class="text-lg text-gray-600">Prefeitura Municipal de Santa Rita - MA</p>
           </div>
           <div class="text-right">
             <p class="text-sm text-gray-500">Ano 2025</p>
@@ -167,7 +167,7 @@
     <footer class="bg-gray-800 text-white py-8 mt-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center">
-          <h3 class="text-lg font-semibold mb-2">Prefeitura Municipal de Santa Rita</h3>
+          <h3 class="text-lg font-semibold mb-2">Prefeitura Municipal de Santa Rita - MA</h3>
           <p class="text-gray-300">Sistema de Seleção de Gestores Escolares 2025</p>
           <p class="text-sm text-gray-400 mt-2">© 2025 - Todos os direitos reservados</p>
         </div>

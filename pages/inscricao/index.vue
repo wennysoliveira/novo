@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
-    <header class="bg-white shadow-sm">
+    <header class="bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm border-b border-blue-100">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-6">
           <div>
@@ -19,9 +19,9 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <ProgressBar
         :current="currentSection"
-        :total="4"
+        :total="5"
         label="Progresso do Formulário"
-        :description="`Seção ${currentSection} de 4`"
+        :description="`Seção ${currentSection} de 5`"
       />
     </div>
 
@@ -187,9 +187,9 @@
           </div>
         </div>
 
-        <!-- Seção 3: Títulos e Experiência -->
+        <!-- Seção 3: ANEXO 2 - Formação Acadêmica -->
         <div class="card">
-          <h2 class="text-xl font-semibold text-gray-900 mb-6">3. Títulos e Experiência (Para Análise de Títulos)</h2>
+          <h2 class="text-xl font-semibold text-gray-900 mb-6">3. ANEXO 2: Formação Acadêmica</h2>
           <p class="text-sm text-gray-600 mb-6">Esta seção é opcional, mas essencial para a pontuação do candidato.</p>
           
           <div class="grid md:grid-cols-2 gap-6">
@@ -216,7 +216,15 @@
               accept-text="PDF (máx. 5MB)"
               v-model="files.pos_graduacao"
             />
-            
+          </div>
+        </div>
+
+        <!-- Seção 4: ANEXO 3 - Experiência Profissional -->
+        <div class="card">
+          <h2 class="text-xl font-semibold text-gray-900 mb-6">4. ANEXO 3: Experiência Profissional</h2>
+          <p class="text-sm text-gray-600 mb-6">Esta seção é opcional, mas essencial para a pontuação do candidato.</p>
+          
+          <div class="grid md:grid-cols-2 gap-6">
             <FormInput
               id="tempo_magisterio"
               label="ANEXO 3.1: Tempo de efetivo exercício no magistério da rede municipal (em anos)"
@@ -245,9 +253,9 @@
           </div>
         </div>
 
-        <!-- Seção 4: Plano de Gestão -->
+        <!-- Seção 5: Plano de Gestão -->
         <div class="card">
-          <h2 class="text-xl font-semibold text-gray-900 mb-6">4. Plano de Gestão Escolar</h2>
+          <h2 class="text-xl font-semibold text-gray-900 mb-6">5. Plano de Gestão Escolar</h2>
           
           <div v-if="!isManagementPlanPeriod" class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <div class="flex">
@@ -282,7 +290,6 @@
             type="button"
             class="btn-secondary"
             @click="goBack"
-            :disabled="currentSection === 1"
           >
             ← Anterior
           </button>
@@ -385,6 +392,9 @@ const formatPhone = (event: Event) => {
 const goBack = () => {
   if (currentSection.value > 1) {
     currentSection.value--
+  } else {
+    // Se estiver na primeira seção, voltar para a home
+    navigateTo('/')
   }
 }
 

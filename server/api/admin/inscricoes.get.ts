@@ -1,20 +1,12 @@
 import { prisma } from '~/server/utils/database'
-import { getSession, isSessionExpired, touchSession, SESSION_COOKIE_NAME, getSessionStoreSize } from '~/server/utils/sessionStore'
+import { getSession, isSessionExpired, touchSession, SESSION_COOKIE_NAME } from '~/server/utils/sessionStore'
 
 export default defineEventHandler(async (event) => {
   try {
     // Verificar autenticação
     const sessionId = getCookie(event, SESSION_COOKIE_NAME)
     
-    // Debug: verificar todos os cookies recebidos
-    const allCookies = getCookie(event)
-    console.log('Todos os cookies recebidos:', Object.keys(allCookies || {}))
-    console.log('Verificando sessão - sessionId:', sessionId ? `presente (${sessionId.substring(0, 8)}...)` : 'ausente')
-    const storeSize = await getSessionStoreSize()
-    console.log('Tamanho da session store:', storeSize)
-    
     if (!sessionId) {
-      console.log('ERRO: Cookie admin_session não encontrado')
       throw createError({
         statusCode: 401,
         message: 'Não autorizado - sessão não encontrada'
@@ -23,10 +15,7 @@ export default defineEventHandler(async (event) => {
     
     const session = await getSession(sessionId)
     
-    console.log('Sessão encontrada:', session ? 'sim' : 'não')
-    
     if (!session) {
-      console.log('ERRO: Sessão não encontrada na store para ID:', sessionId.substring(0, 8))
       throw createError({
         statusCode: 401,
         message: 'Não autorizado - sessão inválida'
@@ -34,7 +23,6 @@ export default defineEventHandler(async (event) => {
     }
     
     if (isSessionExpired(session)) {
-      console.log('ERRO: Sessão expirada')
       throw createError({
         statusCode: 401,
         message: 'Não autorizado - sessão expirada'
@@ -65,7 +53,6 @@ export default defineEventHandler(async (event) => {
       ]
     }
 
-    console.log('Buscando inscrições - where:', JSON.stringify(where), 'take:', take, 'skip:', skip)
 
     // Buscar inscrições com paginação
     const [candidates, total] = await Promise.all([
@@ -210,7 +197,6 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    console.log('Inscrições encontradas:', candidates.length, 'Total no banco:', total)
 
     return {
       success: true,

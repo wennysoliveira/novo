@@ -167,18 +167,6 @@
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-6">ANEXO 2: Formação Acadêmica - Validação</h2>
           
-          <!-- Mensagem para inscrições sem títulos (antigas) -->
-          <div v-if="candidato.titles.filter(t => ['doutorado', 'mestrado', 'pos_graduacao'].includes(t.type)).length === 0" 
-               class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p class="text-sm text-blue-800">
-              <strong>Formação Acadêmica informada:</strong> {{ candidato.formacaoAcademica }}
-            </p>
-            <p class="text-xs text-blue-600 mt-1">
-              Esta inscrição foi realizada antes da implementação do sistema de validação. 
-              A pontuação é calculada automaticamente com base na formação informada.
-            </p>
-          </div>
-          
           <!-- 2.1 - Doutorado -->
           <div v-for="title in candidato.titles.filter(t => t.type === 'doutorado')" 
                :key="title.id" 
@@ -459,18 +447,6 @@
         <!-- ANEXO 3: Experiência Profissional - Validação -->
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-6">ANEXO 3: Experiência Profissional - Validação</h2>
-          
-          <!-- Mensagem para inscrições sem títulos de experiência (antigas) -->
-          <div v-if="candidato.titles.filter(t => ['tempo_magisterio', 'experiencia_gestao', 'cursos_formacao'].includes(t.type)).length === 0" 
-               class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p class="text-sm text-blue-800">
-              <strong>Experiência em Gestão informada:</strong> {{ candidato.tempoExperienciaGestao }} {{ candidato.tempoExperienciaGestao === 1 ? 'ano' : 'anos' }}
-            </p>
-            <p class="text-xs text-blue-600 mt-1">
-              Esta inscrição foi realizada antes da implementação do sistema de validação. 
-              A pontuação é calculada automaticamente com base nos dados informados.
-            </p>
-          </div>
           
           <!-- 3.1 - Tempo de Magistério -->
           <div v-for="title in candidato.titles.filter(t => t.type === 'tempo_magisterio')" 
