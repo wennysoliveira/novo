@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     const fallbackId = randomUUID().slice(0, 8)
     const nomeCompleto = formDataObj.nomeCompleto ?? ''
     const cpf = formDataObj.cpf && String(formDataObj.cpf).trim() !== ''
-      ? String(formDataObj.cpf)
+      ? String(formDataObj.cpf).replace(/\D/g, '') // Remove caracteres não numéricos
       : `temp-${fallbackId}`
     const email = formDataObj.email && String(formDataObj.email).trim() !== ''
       ? String(formDataObj.email)
@@ -48,6 +48,44 @@ export default defineEventHandler(async (event) => {
     const formacaoAcademica = formDataObj.formacaoAcademica ?? ''
     const tempoExperienciaGestao = Number.parseInt(formDataObj.tempoExperienciaGestao ?? '0') || 0
     const sexo = formDataObj.sexo ?? null
+
+    // Verificar se CPF já existe (evitar duplicatas)
+    if (cpf && cpf !== `temp-${fallbackId}`) {
+      const existingCandidate = await prisma.candidate.findUnique({
+        where: { cpf }
+      })
+      
+      if (existingCandidate) {
+        // CPF já existe - retornar protocolo existente
+        const protocoloExistente = `SEG-${existingCandidate.id.slice(-8).toUpperCase()}`
+        console.log(`CPF ${cpf} já cadastrado. Protocolo existente: ${protocoloExistente}`)
+        
+        return {
+          success: true,
+          message: 'Inscrição já existe. Retornando protocolo da inscrição anterior.',
+          protocolo: protocoloExistente,
+          candidateId: existingCandidate.id,
+          alreadyExists: true,
+          documentsCount: 0,
+          titlesCount: 0
+        }
+      }
+    }
+
+    // Verificar se email já existe
+    if (email && email !== `temp-${fallbackId}@example.com`) {
+      const existingByEmail = await prisma.candidate.findUnique({
+        where: { email }
+      })
+      
+      if (existingByEmail && existingByEmail.cpf !== cpf) {
+        // Email já existe com outro CPF
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Este e-mail já está cadastrado com outro CPF'
+        })
+      }
+    }
 
     // Criar candidato e documentos em uma transação
     const result = await prisma.$transaction(async (tx) => {
@@ -103,6 +141,51 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Erro na inscrição:', error)
+    
+    // Tratar erro de constraint única (CPF ou email duplicado)
+    if (error.code === 'P2002') {
+      const target = error.meta?.target || []
+      
+      if (target.includes('cpf')) {
+        // CPF duplicado - buscar candidato existente pelo CPF que tentamos criar
+        console.log(`Erro P2002: CPF duplicado. Buscando candidato existente com CPF: ${cpf}`)
+        
+        try {
+          const existingCandidate = await prisma.candidate.findUnique({
+            where: { cpf }
+          })
+          
+          if (existingCandidate) {
+            const protocoloExistente = `SEG-${existingCandidate.id.slice(-8).toUpperCase()}`
+            console.log(`CPF ${cpf} já cadastrado. Retornando protocolo existente: ${protocoloExistente}`)
+            
+            return {
+              success: true,
+              message: 'Inscrição já existe. Retornando protocolo da inscrição anterior.',
+              protocolo: protocoloExistente,
+              candidateId: existingCandidate.id,
+              alreadyExists: true,
+              documentsCount: 0,
+              titlesCount: 0
+            }
+          }
+        } catch (lookupError) {
+          console.error('Erro ao buscar candidato existente:', lookupError)
+        }
+        
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Este CPF já está cadastrado'
+        })
+      }
+      
+      if (target.includes('email')) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Este e-mail já está cadastrado'
+        })
+      }
+    }
     
     if (error.statusCode) {
       throw error
