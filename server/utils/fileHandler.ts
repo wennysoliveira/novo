@@ -6,7 +6,12 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads'
 
 // Garantir que o diretório de upload existe
 export async function ensureUploadDir(cpf: string) {
-  const candidateDir = path.join(UPLOAD_DIR, cpf.replace(/\D/g, ''))
+  // Normalizar UPLOAD_DIR para caminho absoluto
+  const uploadBase = path.isAbsolute(UPLOAD_DIR) 
+    ? UPLOAD_DIR 
+    : path.resolve(process.cwd(), UPLOAD_DIR)
+  
+  const candidateDir = path.join(uploadBase, cpf.replace(/\D/g, ''))
   await fs.mkdir(candidateDir, { recursive: true })
   return candidateDir
 }
@@ -27,23 +32,52 @@ export async function saveFile(
   // Salvar arquivo
   await fs.writeFile(filepath, file.buffer)
   
+  // Salvar caminho absoluto no banco para garantir consistência
+  const absolutePath = path.isAbsolute(filepath) 
+    ? filepath 
+    : path.resolve(process.cwd(), filepath)
+  
+  console.log(`Arquivo salvo: ${absolutePath} (UPLOAD_DIR: ${UPLOAD_DIR})`)
+  
   return {
-    filepath: filepath.replace(/\\/g, '/'), // Normalizar separadores
+    filepath: absolutePath.replace(/\\/g, '/'), // Normalizar separadores, sempre absoluto
     filename: uniqueFilename
   }
 }
 
+// Resolver caminho do arquivo (suporta tanto absoluto quanto relativo)
+function resolveFilePath(filepath: string): string {
+  // Se já é absoluto, retornar como está
+  if (path.isAbsolute(filepath)) {
+    return filepath
+  }
+  
+  // Se é relativo, tentar resolver usando UPLOAD_DIR base
+  const uploadBase = path.isAbsolute(UPLOAD_DIR) 
+    ? UPLOAD_DIR 
+    : path.resolve(process.cwd(), UPLOAD_DIR)
+  
+  // Se o filepath começa com ./uploads ou uploads/, remover e resolver
+  const normalizedPath = filepath.replace(/^\.\//, '').replace(/^uploads\//, '')
+  return path.resolve(uploadBase, normalizedPath)
+}
+
 // Ler arquivo
 export async function readFile(filepath: string): Promise<Buffer> {
-  return await fs.readFile(filepath)
+  const resolvedPath = resolveFilePath(filepath)
+  console.log(`Tentando ler arquivo: ${resolvedPath} (original: ${filepath})`)
+  return await fs.readFile(resolvedPath)
 }
 
 // Verificar se arquivo existe
 export async function fileExists(filepath: string): Promise<boolean> {
   try {
-    await fs.access(filepath)
+    const resolvedPath = resolveFilePath(filepath)
+    console.log(`Verificando se arquivo existe: ${resolvedPath} (original: ${filepath})`)
+    await fs.access(resolvedPath)
     return true
-  } catch {
+  } catch (error: any) {
+    console.error(`Arquivo não encontrado: ${filepath} (resolvido: ${resolveFilePath(filepath)})`, error.message)
     return false
   }
 }
